@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Mualliflar va Sotuvchilar — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">Mualliflar va Sotuvchilar</h1>
+      <p class="section-subtitle">Codora platformasining eng kuchli dasturchi va dizaynerlari</p>
+    </div>
+    {% if not request.user.seller_profile %}
+      <a href="{% url 'become_seller' %}" class="btn btn-primary btn-sm">Sotuvchi bo‘lish</a>
+    {% endif %}
+  </div>
+
+  <div class="grid-4">
+    {% for seller in sellers %}
+      {% include 'components/seller_card.html' with seller=seller %}
+    {% empty %}
+      <p style="color: var(--text-muted);">Hozircha sotuvchilar ro‘yxati mavjud emas.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Umumiy ko‘rinish{% endblock %}
+
+{% block dashboard_content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Jami daromad</span>
+      <span class="stat-icon">💰</span>
+    </div>
+    <div class="stat-value">{{ seller.total_earnings|floatformat:0 }} so‘m</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Jami sotuvlar</span>
+      <span class="stat-icon">🛒</span>
+    </div>
+    <div class="stat-value">{{ seller.total_sales }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Mahsulotlar</span>
+      <span class="stat-icon">📦</span>
+    </div>
+    <div class="stat-value">{{ seller.products.count }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Do‘kon reytingi</span>
+      <span class="stat-icon">⭐</span>
+    </div>
+    <div class="stat-value">{{ seller.rating|floatformat:1 }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Jami ko‘rishlar</span>
+      <span class="stat-icon">👁️</span>
+    </div>
+    <div class="stat-value">{{ total_views|default:0 }}</div>
+  </div>
+</div>
+
+{% if pending_products_count > 0 %}
+  <div style="background: var(--warning-bg); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+    <div>
+      <strong style="color: var(--warning);">Ko‘rib chiqilayotgan mahsulotlar:</strong>
+      <span style="color: var(--text-secondary); margin-left: 6px;">{{ pending_products_count }} ta mahsulotingiz moderator tekshiruvida turibdi.</span>
+    </div>
+    <a href="{% url 'dashboard_products' %}" class="btn btn-outline btn-sm">Ko‘rish</a>
+  </div>
+{% endif %}
+
+<div class="card" style="margin-bottom: 32px;">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">So‘nggi sotuvlar</h3>
+    <a href="{% url 'dashboard_orders' %}" class="btn btn-ghost btn-sm">Barchasi →</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Buyurtma</th>
+          <th>Mahsulot</th>
+          <th>Narx</th>
+          <th>Xaridor</th>
+          <th>Sana</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order_item in recent_orders %}
+          <tr>
+            <td><code style="color: var(--accent);">#{{ order_item.order.order_number }}</code></td>
+            <td style="font-weight: 600; color: var(--text-primary);">{{ order_item.product_title }}</td>
+            <td>{{ order_item.price|floatformat:0 }} so‘m</td>
+            <td>{{ order_item.order.user.username }}</td>
+            <td>{{ order_item.order.created_at|date:"d.m.Y H:i" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px;">
+              Hozircha sotuvlar qayd etilmagan.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

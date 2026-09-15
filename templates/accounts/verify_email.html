@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Pochtani tasdiqlash — Codora{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-card" style="max-width: 480px;">
+    <div class="auth-header" style="text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">✉️</div>
+      <h1 class="auth-title">Pochtani tasdiqlang</h1>
+      <p class="auth-subtitle">
+        Biz <strong>{{ masked_email }}</strong> elektron pochta manziliga 6 xonali tasdiqlash kodini yubordik.
+      </p>
+    </div>
+
+    {% if error %}
+      <div style="background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.9rem;">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'verify_email' %}" id="otp-form" data-loading>
+      {% csrf_token %}
+      <input type="hidden" name="code" id="full-otp-code">
+
+      <div style="display: flex; justify-content: center; gap: 6px; margin: 24px 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="0" autofocus required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="1" required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="2" required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="3" required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="4" required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-input otp-digit" data-index="5" required style="width: min(52px, 13vw); height: 58px; text-align: center; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 800; font-family: monospace; padding: 0;">
+      </div>
+
+      <div style="text-align: center; margin-bottom: 24px; font-size: 0.88rem; color: var(--text-muted);">
+        Kodning amal qilish muddati: <strong id="expiry-timer" style="color: var(--accent); font-family: monospace; font-size: 1rem;">05:00</strong>
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" data-loading-text="⏳ Tekshirilmoqda...">
+          ✅ Hisobni tasdiqlash va faollashtirish
+        </button>
+      </div>
+    </form>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light);">
+      <form method="POST" action="{% url 'resend_code' %}" id="resend-form">
+        {% csrf_token %}
+        <button type="submit" id="resend-btn" class="btn btn-secondary btn-sm" disabled>
+          Kodni qayta yuborish (<span id="resend-countdown">60</span>s)
+        </button>
+      </form>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        Email xato kiritildimi? <a href="{% url 'register' %}" style="color: var(--accent); font-weight: 600;">Qaytadan ro‘yxatdan o‘tish</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const digits = document.querySelectorAll('.otp-digit');
+  const fullCodeInput = document.getElementById('full-otp-code');
+  const form = document.getElementById('otp-form');
+
+  digits.forEach((digit, idx) => {
+    digit.addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value.length === 1 && idx < digits.length - 1) {
+        digits[idx + 1].focus();
+      }
+    });
+
+    digit.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !this.value && idx > 0) {
+        digits[idx - 1].focus();
+      }
+    });
+
+    digit.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim().replace(/[^0-9]/g, '');
+      if (pasteData) {
+        for (let i = 0; i < digits.length; i++) {
+          if (pasteData[i]) {
+            digits[i].value = pasteData[i];
+          }
+        }
+        const nextFocus = Math.min(pasteData.length, digits.length - 1);
+        digits[nextFocus].focus();
+      }
+    });
+  });
+
+  form.addEventListener('submit', function(e) {
+    let combined = '';
+    digits.forEach(d => combined += d.value.trim());
+    fullCodeInput.value = combined;
+  });
+
+  let resendSeconds = parseInt("{{ remaining_resend_seconds|default:'0' }}", 10);
+  let expirySeconds = parseInt("{{ remaining_expiry_seconds|default:'0' }}", 10);
+
+  const resendBtn = document.getElementById('resend-btn');
+  const resendCountdown = document.getElementById('resend-countdown');
+  const expiryTimer = document.getElementById('expiry-timer');
+
+  if (resendSeconds <= 0) {
+    resendBtn.disabled = false;
+    resendBtn.innerHTML = '🔄 Yangi kod yuborish';
+  } else {
+    resendBtn.disabled = true;
+    resendCountdown.textContent = resendSeconds;
+    const resendInterval = setInterval(function() {
+      resendSeconds--;
+      if (resendSeconds <= 0) {
+        clearInterval(resendInterval);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = '🔄 Yangi kod yuborish';
+      } else {
+        resendCountdown.textContent = resendSeconds;
+      }
+    }, 1000);
+  }
+
+  function updateExpiryDisplay(secs) {
+    if (secs <= 0) {
+      expiryTimer.textContent = 'Muddati tugadi';
+      expiryTimer.style.color = 'var(--danger)';
+    } else {
+      const mins = Math.floor(secs / 60);
+      const remainingSecs = secs % 60;
+      expiryTimer.textContent = (mins < 10 ? '0' : '') + mins + ':' + (remainingSecs < 10 ? '0' : '') + remainingSecs;
+      expiryTimer.style.color = 'var(--accent)';
+    }
+  }
+
+  updateExpiryDisplay(expirySeconds);
+
+  if (expirySeconds > 0) {
+    const expiryInterval = setInterval(function() {
+      expirySeconds--;
+      updateExpiryDisplay(expirySeconds);
+      if (expirySeconds <= 0) {
+        clearInterval(expiryInterval);
+      }
+    }, 1000);
+  }
+});
+</script>
+{% endblock %}

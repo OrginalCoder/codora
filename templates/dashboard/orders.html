@@ -1,0 +1,159 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Buyurtmalar va To‘lov cheklari{% endblock %}
+
+{% block dashboard_content %}
+<div class="card">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <h3 style="font-size: 1.15rem;">Buyurtmalar va to‘lovlar</h3>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <a href="?status=all" class="btn btn-sm {% if status_filter == 'all' or not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">
+        Barchasi ({{ orders.count }})
+      </a>
+      <a href="?status=pending_verification" class="btn btn-sm {% if status_filter == 'pending_verification' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if pending_count > 0 %}border-color: var(--warning); color: var(--warning);{% endif %}">
+        ⏳ Chek kutilmoqda ({{ pending_count }})
+      </a>
+      <a href="?status=paid" class="btn btn-sm {% if status_filter == 'paid' %}btn-primary{% else %}btn-secondary{% endif %}">
+        ✅ Tasdiqlangan ({{ paid_count }})
+      </a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Buyurtma #</th>
+          <th>Mahsulot(lar)</th>
+          <th>Xaridor</th>
+          <th>Summa</th>
+          <th>To‘lov cheki</th>
+          <th>Sana</th>
+          <th>Holat</th>
+          <th>Amal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td>
+              <code style="color: var(--accent); font-weight: 700;">#{{ order.order_number }}</code>
+            </td>
+            <td>
+              {% for item in order.items.all %}
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">
+                  {{ item.product_title }}
+                </div>
+              {% empty %}
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Mahsulot</span>
+              {% endfor %}
+            </td>
+            <td>
+              <div style="font-weight: 600; font-size: 0.9rem;">{{ order.user.get_full_name|default:order.user.username }}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">@{{ order.user.username }}</div>
+            </td>
+            <td style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">
+              {{ order.final_amount|floatformat:0 }} so‘m
+            </td>
+            <td>
+              {% if order.receipt_image %}
+                <a href="{{ order.receipt_image.url }}" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.78rem;">
+                  <span>🧾</span> <span>Chekni ko‘rish</span>
+                </a>
+              {% else %}
+                <span style="color: var(--text-muted); font-size: 0.8rem;">Chek yuklanmagan</span>
+              {% endif %}
+            </td>
+            <td style="font-size: 0.85rem; color: var(--text-secondary);">
+              {{ order.created_at|date:"d.m.Y H:i" }}
+            </td>
+            <td>
+              {% if order.status == 'paid' %}
+                <span class="badge badge-success">✓ Tasdiqlangan</span>
+              {% elif order.status == 'pending_verification' %}
+                <span class="badge badge-warning" style="background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3);">
+                  ⏳ Chek kutilmoqda
+                </span>
+              {% elif order.status == 'rejected' %}
+                <span class="badge badge-danger">✕ Rad etilgan</span>
+              {% else %}
+                <span class="badge badge-secondary">{{ order.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if order.status == 'pending_verification' %}
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <form method="POST" action="{% url 'dashboard_order_approve' order.id %}" style="display: inline;" data-loading>
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm" style="background: var(--success); border-color: var(--success); padding: 5px 10px; font-size: 0.8rem;" title="To‘lovni tasdiqlash">
+                      ✓ Tasdiqlash
+                    </button>
+                  </form>
+                  <button type="button" class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3); padding: 5px 10px; font-size: 0.8rem;" onclick="openRejectModal('{{ order.id }}', '{{ order.order_number }}')" title="Rad etish">
+                    ✕ Rad etish
+                  </button>
+                </div>
+              {% elif order.status == 'paid' %}
+                <span style="color: var(--success); font-size: 0.82rem; font-weight: 600;">Faol xarid</span>
+              {% elif order.status == 'rejected' %}
+                <span style="color: var(--danger); font-size: 0.78rem;" title="{{ order.rejection_reason }}">
+                  {{ order.rejection_reason|default:'Rad etilgan'|truncatechars:20 }}
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 48px;">
+              <div style="font-size: 2rem; margin-bottom: 8px;">📦</div>
+              <div>Hozircha buyurtmalar mavjud emas.</div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="reject-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card" style="max-width: 480px; width: 100%; box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 1.1rem; color: var(--danger);">To‘lov chekini rad etish</h3>
+      <button type="button" onclick="closeRejectModal()" style="font-size: 1.3rem; color: var(--text-muted);">✕</button>
+    </div>
+    <div class="card-body">
+      <form id="reject-form" method="POST" action="" data-loading>
+        {% csrf_token %}
+        <p style="font-size: 0.9rem; margin-bottom: 14px; color: var(--text-secondary);">
+          Buyurtma: <strong id="reject-order-number"></strong>
+        </p>
+        <div class="form-group">
+          <label for="rejection_reason" class="form-label">Rad etish sababi (Xaridorga ko‘rinadi)</label>
+          <textarea id="rejection_reason" name="rejection_reason" class="form-textarea" rows="3" placeholder="Masalan: To‘lov summasi to‘liq emas yoki chek bank tizimida topilmadi" required></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">Bekor qilish</button>
+          <button type="submit" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger);">Rad etishni tasdiqlash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openRejectModal(orderId, orderNum) {
+  const modal = document.getElementById('reject-modal');
+  const form = document.getElementById('reject-form');
+  const numSpan = document.getElementById('reject-order-number');
+  if (modal && form && numSpan) {
+    form.action = '/dashboard/orders/' + orderId + '/reject/';
+    numSpan.textContent = '#' + orderNum;
+    modal.style.display = 'flex';
+  }
+}
+function closeRejectModal() {
+  const modal = document.getElementById('reject-modal');
+  if (modal) modal.style.display = 'none';
+}
+</script>
+{% endblock %}

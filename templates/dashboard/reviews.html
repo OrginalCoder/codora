@@ -1,0 +1,54 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Mijozlar sharhlari{% endblock %}
+
+{% block dashboard_content %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">Mahsulotlaringizga qoldirilgan barcha sharhlar</h3>
+  </div>
+
+  <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+    {% for review in reviews %}
+      <div class="card" style="padding: 20px; background: var(--bg-secondary);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">
+              {{ review.product.title }}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+              Foydalanuvchi: <strong>{{ review.user.username }}</strong> • {{ review.created_at|date:"d.m.Y H:i" }}
+            </div>
+          </div>
+          <div style="color: var(--warning); font-weight: 700;">
+            {{ review.rating }} ★
+          </div>
+        </div>
+
+        <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+          {{ review.comment }}
+        </p>
+
+        {% if review.seller_reply %}
+          <div style="padding: 12px 16px; background: var(--surface); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); font-size: 0.88rem; margin-top: 8px;">
+            <div style="font-weight: 600; color: var(--accent); margin-bottom: 4px;">Sizning javobingiz:</div>
+            <div style="color: var(--text-secondary);">{{ review.seller_reply }}</div>
+          </div>
+        {% else %}
+          <form method="POST" action="{% url 'reply_review' review.id %}" style="margin-top: 10px;" data-loading>
+            {% csrf_token %}
+            <div style="display: flex; gap: 10px;">
+              <input type="text" name="seller_reply" class="form-input" placeholder="Mijozga do‘stona javob yozing..." required>
+              <button type="submit" class="btn btn-secondary btn-sm" style="white-space: nowrap;" data-loading-text="⏳...">
+                Javob berish
+              </button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}
+      {% include 'components/empty_state.html' with empty_icon="⭐" empty_title="Hozircha sharhlar yo‘q" empty_desc="Mahsulotlaringiz xarid qilingandan so‘ng mijozlar o‘z sharhlarini qoldirishadi." %}
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

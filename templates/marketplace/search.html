@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Qidiruv: {{ query }} — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">🔎 Qidiruv natijalari</h1>
+      <p class="section-subtitle">
+        {% if query %}
+          "<strong>{{ query }}</strong>" bo‘yicha <strong>{{ products.count }}</strong> ta mahsulot topildi
+        {% else %}
+          Qidiruv so‘zini kiriting
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <form action="{% url 'search' %}" method="GET" style="display: flex; gap: 12px; max-width: 640px;">
+      <input type="text" name="q" value="{{ query|default:'' }}" class="form-input" placeholder="Mahsulot nomi, kategoriya yoki muallif...">
+      <button type="submit" class="btn btn-primary">Qidirish</button>
+    </form>
+  </div>
+
+  {% if products %}
+    <div class="grid-4">
+      {% for product in products %}
+        {% include 'components/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include 'components/empty_state.html' with empty_icon="🔎" empty_title="Hech narsa topilmadi" empty_desc="So‘rov bo‘yicha mahsulotlar mavjud emas. Boshqa kalit so‘zlardan foydalanib ko‘ring." empty_action_url="/marketplace/" empty_action_text="Barcha mahsulotlarni ko‘rish" %}
+  {% endif %}
+</div>
+{% endblock %}

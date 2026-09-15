@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Bildirishnomalar — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px; max-width: 760px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">Bildirishnomalar</h1>
+      <p class="section-subtitle">Tizim va xaridlaringiz haqidagi so‘nggi xabarlar</p>
+    </div>
+    {% if notifications %}
+      <form method="POST" action="{% url 'mark_all_notifications_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary btn-sm">Barchasini o‘qilgan deb belgilash</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      {% for notif in notifications %}
+        <div class="card" style="padding: 16px 20px; {% if not notif.is_read %}border-color: var(--accent); background: var(--surface-hover);{% endif %} display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div style="font-size: 1.5rem;">
+              {% if notif.notification_type == 'sale' %}🛒
+              {% elif notif.notification_type == 'approval' %}✅
+              {% elif notif.notification_type == 'rejection' %}❌
+              {% elif notif.notification_type == 'review' %}⭐
+              {% elif notif.notification_type == 'update' %}📦
+              {% else %}🔔{% endif %}
+            </div>
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 1rem;">{{ notif.title }}</div>
+              <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">{{ notif.message }}</p>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">{{ notif.created_at|date:"d.m.Y H:i" }}</div>
+            </div>
+          </div>
+
+          {% if notif.link %}
+            <a href="{{ notif.link }}" class="btn btn-outline btn-sm" style="white-space: nowrap;">O‘tish →</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include 'components/empty_state.html' with empty_icon="🔔" empty_title="Hozircha yangi bildirishnomalar yo‘q." empty_desc="Xaridlar yoki sotuvlar sodir bo‘lganda bu yerda xabarlar paydo bo‘ladi." %}
+  {% endif %}
+</div>
+{% endblock %}

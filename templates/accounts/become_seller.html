@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Codora'da sotuvchi bo‘ling{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="max-width: 760px; padding-top: 32px;">
+  <div class="card">
+    <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+      <span class="badge badge-primary">Sotuvchilar ekotizimi</span>
+      <h1 style="font-size: 1.8rem; font-weight: 800;">Codora'da sotuvchi bo‘ling</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Raqamli mahsulotlaringizni Codora orqali sotishni boshlang. Manba kodlari, botlar, dizaynlar va shablonlaringizni minglab mijozlarga taqdim eting.
+      </p>
+    </div>
+
+    <div class="seller-benefits-grid" style="padding: 0 24px;">
+      <div class="seller-benefit-card">
+        <div class="seller-benefit-icon">💳</div>
+        <div class="seller-benefit-title">To‘g‘ridan-to‘g‘ri to‘lov</div>
+        <div class="seller-benefit-desc">Mijoz to‘lovlari to‘g‘ridan-to‘g‘ri o‘z bank kartangizga tushadi.</div>
+      </div>
+      <div class="seller-benefit-card">
+        <div class="seller-benefit-icon">🔒</div>
+        <div class="seller-benefit-title">Fayllar xavfsizligi</div>
+        <div class="seller-benefit-desc">Manba kodlaringiz shifrlangan va faqat xarid tasdiqlangach ochiladi.</div>
+      </div>
+      <div class="seller-benefit-card">
+        <div class="seller-benefit-icon">📈</div>
+        <div class="seller-benefit-title">Analitika va do‘kon</div>
+        <div class="seller-benefit-desc">Shaxsiy brend profilingiz va batafsil savdolar statistikasi.</div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      {% if already_applied %}
+        <div style="text-align: center; padding: 32px 16px;">
+          <div style="font-size: 3rem; margin-bottom: 16px;">⏳</div>
+          <h2 style="font-size: 1.3rem; margin-bottom: 8px;">Arizangiz ko‘rib chiqilmoqda</h2>
+          <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 24px auto;">
+            Sizning sotuvchi bo‘lish to‘g‘risidagi arizangiz qabul qilingan. Tez orada administratorlarimiz siz bilan bog‘lanishadi yoki arizangiz tasdiqlanadi.
+          </p>
+          <a href="{% url 'profile' %}" class="btn btn-secondary">Profilga qaytish</a>
+        </div>
+      {% else %}
+        <form method="POST" action="{% url 'become_seller' %}" enctype="multipart/form-data" data-loading>
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="store_name" class="form-label">Do‘kon / Muallif nomi *</label>
+            <input type="text" id="store_name" name="store_name" class="form-input" required placeholder="Masalan: DevStudio, CyberBot yoki Shaxsiy Ism" value="{{ request.user.get_full_name|default:request.user.username }}">
+          </div>
+
+          <div class="form-group">
+            <label for="avatar" class="form-label">Sotuvchi avatari / Logotipi</label>
+            <input type="file" id="avatar" name="avatar" class="form-input" accept=".jpg,.jpeg,.png,.webp,.gif,.heic" data-max-size="5" data-allowed-ext="jpg,jpeg,png,webp,gif,heic">
+            <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 5px 10px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted);">
+              <span>🛡️</span>
+              <span><strong>Ruxsat etilgan:</strong> JPG, PNG, WEBP, GIF, HEIC • <strong>Limit:</strong> max 5 MB</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="bio" class="form-label">Qisqacha tavsif (Bio) *</label>
+            <textarea id="bio" name="bio" class="form-textarea" required rows="3" placeholder="Qaysi texnologiyalar bilan ishlaysiz va qanday mahsulotlar yaratasiz?"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="portfolio_url" class="form-label">Portfolio yoki GitHub havolasi</label>
+            <input type="url" id="portfolio_url" name="portfolio_url" class="form-input" placeholder="https://github.com/username">
+          </div>
+
+          <div class="form-group">
+            <label for="telegram" class="form-label">Telegram aloqa (@username)</label>
+            <input type="text" id="telegram" name="telegram" class="form-input" placeholder="@username">
+          </div>
+
+          <div class="form-group">
+            <label for="experience" class="form-label">Dasturlash / Dizayn tajribangiz *</label>
+            <textarea id="experience" name="experience" class="form-textarea" required rows="3" placeholder="Necha yillik tajribaga egasiz? Qanday yirik loyihalar bajargansiz?"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary btn-block btn-lg" data-loading-text="⏳ Yuborilmoqda...">
+              Sotuvchi bo‘lish uchun ariza topshirish
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

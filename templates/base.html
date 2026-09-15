@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>{% block title %}Codora — Premium Raqamli Mahsulotlar Marketpleysi{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Dasturchilar, dizaynerlar va raqamli ijodkorlar uchun zamonaviy bozor. Source code, botlar, veb shablonlar va boshqalar.{% endblock %}">
+  
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('codora_theme');
+        if (theme === 'light') {
+          document.documentElement.removeAttribute('data-theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if messages %}
+    <div style="display: none;">
+      {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-level="{{ message.tags }}"></div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% include 'components/header.html' %}
+
+  <main class="site-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'components/footer.html' %}
+
+  <nav class="mobile-bottom-nav" aria-label="Mobil navigatsiya">
+    <a href="{% url 'home' %}" class="mobile-bottom-item {% if request.path == '/' %}active{% endif %}">
+      <span class="mobile-bottom-icon">🏠</span>
+      <span class="mobile-bottom-label">Asosiy</span>
+    </a>
+    <a href="{% url 'marketplace' %}" class="mobile-bottom-item {% if '/marketplace/' in request.path %}active{% endif %}">
+      <span class="mobile-bottom-icon">🛍️</span>
+      <span class="mobile-bottom-label">Katalog</span>
+    </a>
+    <a href="{% url 'cart' %}" class="mobile-bottom-item {% if '/cart/' in request.path %}active{% endif %}" style="position: relative;">
+      <span class="mobile-bottom-icon">🛒</span>
+      <span class="mobile-bottom-label">Savat</span>
+      <span id="mobile-cart-badge" class="mobile-bottom-badge" style="display: {% if cart_count %}flex{% else %}none{% endif %};">{{ cart_count|default:0 }}</span>
+    </a>
+    <a href="{% url 'wishlist' %}" class="mobile-bottom-item {% if '/wishlist/' in request.path %}active{% endif %}">
+      <span class="mobile-bottom-icon">❤️</span>
+      <span class="mobile-bottom-label">Sevimlilar</span>
+    </a>
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'profile' %}" class="mobile-bottom-item {% if '/profile/' in request.path or '/dashboard/' in request.path %}active{% endif %}">
+        <span class="mobile-bottom-icon">👤</span>
+        <span class="mobile-bottom-label">Profil</span>
+      </a>
+    {% else %}
+      <a href="{% url 'login' %}" class="mobile-bottom-item {% if '/login/' in request.path %}active{% endif %}">
+        <span class="mobile-bottom-icon">🔑</span>
+        <span class="mobile-bottom-label">Kirish</span>
+      </a>
+    {% endif %}
+  </nav>
+
+  <div class="lightbox-modal" id="lightbox-modal" aria-hidden="true">
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Yopish">✕</button>
+      <img src="" alt="Ko‘rish" class="lightbox-img" id="lightbox-img">
+    </div>
+  </div>
+
+  <script src="{% static 'js/toast.js' %}"></script>
+  <script src="{% static 'js/modal.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/cart.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

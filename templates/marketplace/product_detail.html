@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} — Codora{% endblock %}
+{% block meta_description %}{{ product.short_description }}{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 24px;">
+  <div class="breadcrumb">
+    <a href="{% url 'home' %}">Bosh sahifa</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="{% url 'marketplace' %}">Mahsulotlar</a>
+    <span class="breadcrumb-sep">/</span>
+    {% if product.category %}
+      <a href="{% url 'category_detail' product.category.slug %}">{{ product.category.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+    {% endif %}
+    <span style="color: var(--text-primary);">{{ product.title }}</span>
+  </div>
+
+  <div class="product-detail-grid">
+    <div>
+      <div class="product-main-preview" style="cursor: zoom-in;" onclick="if(document.getElementById('main-preview-img')) openLightbox(document.getElementById('main-preview-img').src)">
+        {% if product.thumbnail %}
+          <img id="main-preview-img" src="{{ product.thumbnail.url }}" alt="{{ product.title }}">
+        {% else %}
+          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--surface-elevated); font-size: 4rem;">
+            {{ product.category.icon|default:'📦' }}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if product.images.all %}
+        <div class="product-gallery-thumbs">
+          {% if product.thumbnail %}
+            <div class="product-gallery-thumb active" onclick="document.getElementById('main-preview-img').src='{{ product.thumbnail.url }}'; document.querySelectorAll('.product-gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+              <img src="{{ product.thumbnail.url }}" alt="Thumbnail">
+            </div>
+          {% endif %}
+          {% for img in product.images.all %}
+            <div class="product-gallery-thumb" onclick="document.getElementById('main-preview-img').src='{{ img.image.url }}'; document.querySelectorAll('.product-gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+              <img src="{{ img.image.url }}" alt="{{ product.title }}">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="tabs-wrapper" style="margin-top: 40px;">
+        <div class="tabs-nav">
+          <button type="button" class="tab-link active" data-tab="tab-desc">Tavsif</button>
+          <button type="button" class="tab-link" data-tab="tab-features">Xususiyatlar</button>
+          <button type="button" class="tab-link" data-tab="tab-reqs">Talablar</button>
+          <button type="button" class="tab-link" data-tab="tab-files">Fayllar</button>
+          <button type="button" class="tab-link" data-tab="tab-updates">Yangilanishlar</button>
+          <button type="button" class="tab-link" data-tab="tab-reviews">Sharhlar ({{ product.reviews_count }})</button>
+        </div>
+
+        <div class="tab-pane active" id="tab-desc">
+          <div class="product-desc-content" style="white-space: pre-line;">
+            {{ product.description }}
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-features">
+          {% if product.features_list %}
+            <ul style="display: flex; flex-direction: column; gap: 12px;">
+              {% for feature in product.features_list %}
+                <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--text-secondary);">
+                  <span style="color: var(--success); font-weight: 700;">✓</span>
+                  <span>{{ feature }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="color: var(--text-muted);">Maxsus xususiyatlar ro‘yxati ko‘rsatilmagan.</p>
+          {% endif %}
+        </div>
+
+        <div class="tab-pane" id="tab-reqs">
+          {% if product.requirements_list %}
+            <ul style="display: flex; flex-direction: column; gap: 12px;">
+              {% for req in product.requirements_list %}
+                <li style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; color: var(--text-secondary);">
+                  <span style="color: var(--accent); font-weight: 700;">•</span>
+                  <span>{{ req }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="color: var(--text-muted);">Tizimga maxsus texnik talablar yo‘q.</p>
+          {% endif %}
+        </div>
+
+        <div class="tab-pane" id="tab-files">
+          <div class="card" style="padding: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">📦</div>
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">Asosiy dasturiy arxiv</div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted);">Format: {{ product.file_format }} • Versiya: {{ product.version }}</div>
+                </div>
+              </div>
+              {% if is_purchased and purchased_item_id %}
+                <a href="{% url 'download_product' purchased_item_id %}" class="btn btn-primary btn-sm">Yuklab olish</a>
+              {% else %}
+                <span class="badge badge-muted">Xariddan so‘ng</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-updates">
+          {% if product.changelog %}
+            <div style="line-height: 1.7; color: var(--text-secondary); white-space: pre-line;">
+              {{ product.changelog }}
+            </div>
+          {% else %}
+            <p style="color: var(--text-muted);">Yangilanishlar tarixi (changelog) hozircha kiritilmagan.</p>
+          {% endif %}
+        </div>
+
+        <div class="tab-pane" id="tab-reviews">
+          {% if is_purchased and not user_has_reviewed %}
+            <div class="card" style="margin-bottom: 32px;">
+              <div class="card-header">
+                <h3 style="font-size: 1.1rem;">Ushbu mahsulotga sharh qoldiring</h3>
+              </div>
+              <div class="card-body">
+                <form method="POST" action="{% url 'add_review' product.slug %}" data-loading>
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label class="form-label">Baholash</label>
+                    <div class="star-rating-control">
+                      <input type="hidden" name="rating" id="review-rating-input" value="5" required>
+                      <span class="star-rating-star active" data-value="1">★</span>
+                      <span class="star-rating-star active" data-value="2">★</span>
+                      <span class="star-rating-star active" data-value="3">★</span>
+                      <span class="star-rating-star active" data-value="4">★</span>
+                      <span class="star-rating-star active" data-value="5">★</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="comment" class="form-label">Sharh matni</label>
+                    <textarea name="comment" id="comment" class="form-textarea" rows="3" required placeholder="Mahsulot haqida fikringiz va foydalanish tajribangiz..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-sm" data-loading-text="⏳ Yuborilmoqda...">Sharhni yuborish</button>
+                </form>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if product.reviews.all %}
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              {% for review in product.reviews.all %}
+                <div class="card" style="padding: 20px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      {% if review.user.profile.avatar %}
+                        <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.username }}" class="seller-mini-avatar">
+                      {% else %}
+                        <div class="seller-mini-avatar" style="display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; background: var(--accent);">
+                          {{ review.user.username|make_list|first|upper }}
+                        </div>
+                      {% endif %}
+                      <div>
+                        <div style="font-weight: 600; font-size: 0.92rem;">
+                          {{ review.user.get_full_name|default:review.user.username }}
+                          {% if review.is_verified_purchase %}
+                            <span class="badge badge-success" style="font-size: 0.68rem; margin-left: 6px;">✓ Tasdiqlangan xaridor</span>
+                          {% endif %}
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">{{ review.created_at|date:"d.m.Y" }}</div>
+                      </div>
+                    </div>
+                    <div style="color: var(--warning); font-size: 0.95rem; font-weight: 700;">
+                      {{ review.rating }} ★
+                    </div>
+                  </div>
+                  <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.55;">{{ review.comment }}</p>
+                  
+                  {% if review.seller_reply %}
+                    <div style="margin-top: 14px; padding: 12px 16px; background: var(--bg-secondary); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); font-size: 0.88rem;">
+                      <div style="font-weight: 600; color: var(--accent); margin-bottom: 4px;">Muallif javobi:</div>
+                      <div style="color: var(--text-secondary);">{{ review.seller_reply }}</div>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color: var(--text-muted);">Hozircha sharhlar mavjud emas.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="product-meta-card product-meta-sticky">
+        {% if product.category %}
+          <a href="{% url 'category_detail' product.category.slug %}" class="product-card-category" style="font-size: 0.85rem;">
+            {{ product.category.icon }} {{ product.category.name }}
+          </a>
+        {% endif %}
+
+        <h1 style="font-size: 1.7rem; font-weight: 800; margin: 8px 0 12px 0;">{{ product.title }}</h1>
+
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 6px; color: var(--warning); font-weight: 700;">
+            <span>⭐</span>
+            <span>{{ product.rating|floatformat:1 }}</span>
+            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 400;">({{ product.reviews_count }} ta sharh)</span>
+          </div>
+          <span style="color: var(--border);">|</span>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            {{ product.sales_count }} ta xarid
+          </div>
+        </div>
+
+        <div class="product-price-box">
+          {% if product.is_free %}
+            <div class="product-detail-price" style="color: var(--success);">Tekin</div>
+          {% else %}
+            <div class="product-detail-price">{{ product.effective_price|floatformat:0 }} so‘m</div>
+            {% if product.discount_price and product.discount_price < product.price %}
+              <div class="product-detail-old-price">{{ product.price|floatformat:0 }} so‘m</div>
+              <span class="badge badge-discount">-{{ product.discount_percent }}%</span>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+          {% if is_purchased and purchased_item_id %}
+            <div style="background: var(--success-bg); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.9rem; text-align: center; font-weight: 600;">
+              Siz ushbu mahsulotni xarid qilgansiz.
+            </div>
+            <a href="{% url 'download_product' purchased_item_id %}" class="btn btn-primary btn-lg btn-block">
+              ⬇️ Yuklab olish
+            </a>
+          {% else %}
+            {% if product.is_free %}
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'direct_free_checkout' product.slug %}" class="btn btn-primary btn-lg btn-block">
+                  Tekin olish
+                </a>
+              {% else %}
+                <a href="{% url 'login' %}?next={% url 'direct_free_checkout' product.slug %}" class="btn btn-primary btn-lg btn-block">
+                  Tekin olish uchun kirish
+                </a>
+              {% endif %}
+            {% else %}
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'checkout_single' product.slug %}" class="btn btn-primary btn-lg btn-block">
+                  Sotib olish
+                </a>
+                <button type="button" class="btn btn-secondary btn-block" data-add-cart="{{ product.id }}">
+                  🛒 Savatga qo‘shish
+                </button>
+              {% else %}
+                <a href="{% url 'login' %}?next={% url 'checkout_single' product.slug %}" class="btn btn-primary btn-lg btn-block">
+                  Sotib olish uchun kirish
+                </a>
+                <a href="{% url 'login' %}?next={% url 'product_detail' product.slug %}" class="btn btn-secondary btn-block">
+                  🛒 Savatga qo‘shish (Kirish)
+                </a>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+
+          <div style="display: flex; gap: 10px; margin-top: 4px;">
+            {% if request.user.is_authenticated %}
+              <button type="button" class="btn btn-outline btn-block {% if is_wishlisted %}active{% endif %}" data-wishlist-toggle="{{ product.id }}">
+                ❤️ Sevimlilarga saqlash
+              </button>
+            {% else %}
+              <a href="{% url 'login' %}" class="btn btn-outline btn-block">❤️ Sevimlilarga saqlash</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="product-specs-list">
+          <div class="spec-item">
+            <span class="spec-label">Versiya</span>
+            <span class="spec-value">{{ product.version }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Fayl formati</span>
+            <span class="spec-value">{{ product.file_format }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Moslik</span>
+            <span class="spec-value">{{ product.compatibility|default:"Barcha platformalar" }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Yangilangan</span>
+            <span class="spec-value">{{ product.updated_at|date:"d.m.Y" }}</span>
+          </div>
+        </div>
+
+        <div class="seller-profile-box">
+          {% if product.seller.avatar %}
+            <img src="{{ product.seller.avatar.url }}" alt="{{ product.seller.store_name }}" class="seller-box-avatar">
+          {% else %}
+            <div class="seller-box-avatar" style="display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; background: var(--accent);">
+              {{ product.seller.store_name|make_list|first|upper }}
+            </div>
+          {% endif %}
+          <div style="flex-grow: 1;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase;">Muallif</div>
+            <a href="{% url 'seller_profile' product.seller.slug %}" style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">
+              {{ product.seller.store_name }}
+              {% if product.seller.is_verified %}<span style="color: var(--accent);">✓</span>{% endif %}
+            </a>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+              ⭐ {{ product.seller.rating|floatformat:1 }} • {{ product.seller.total_sales }} ta sotuv
+            </div>
+          </div>
+          <a href="{% url 'seller_profile' product.seller.slug %}" class="btn btn-outline btn-sm">Profil</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if related_products %}
+    <div style="margin-top: 56px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">O‘xshash mahsulotlar</h2>
+          <p class="section-subtitle">Ushbu toifadagi boshqa foydali ishlanmalar</p>
+        </div>
+      </div>
+      <div class="grid-4">
+        {% for rel in related_products %}
+          {% include 'components/product_card.html' with product=rel %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="mobile-sticky-buy-bar">
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-size: 0.72rem; color: var(--text-muted);">Narxi:</span>
+      <span style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">
+        {% if product.is_free %}Tekin{% else %}{{ product.effective_price|floatformat:0 }} so‘m{% endif %}
+      </span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      {% if is_purchased and purchased_item_id %}
+        <a href="{% url 'download_product' purchased_item_id %}" class="btn btn-primary btn-sm">⬇️ Yuklab olish</a>
+      {% else %}
+        {% if request.user.is_authenticated %}
+          {% if not product.is_free %}
+            <button type="button" class="btn btn-secondary btn-sm" data-add-cart="{{ product.id }}">🛒</button>
+            <a href="{% url 'checkout_single' product.slug %}" class="btn btn-primary btn-sm">Sotib olish</a>
+          {% else %}
+            <a href="{% url 'direct_free_checkout' product.slug %}" class="btn btn-primary btn-sm">Tekin olish</a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'login' %}?next={% url 'checkout_single' product.slug %}" class="btn btn-primary btn-sm">Kirish va sotib olish</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Sevimlilar — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">❤️ Sevimlilar</h1>
+      <p class="section-subtitle">Sizga yoqqan va keyinroq xarid qilish uchun saqlangan mahsulotlar</p>
+    </div>
+  </div>
+
+  {% if wishlist_items %}
+    <div class="grid-4">
+      {% for item in wishlist_items %}
+        {% include 'components/product_card.html' with product=item.product %}
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include 'components/empty_state.html' with empty_icon="❤️" empty_title="Sevimlilar ro‘yxati hozircha bo‘sh." empty_desc="Marketplaceda o‘zingizga yoqqan mahsulotlarni saqlang." empty_action_url="/marketplace/" empty_action_text="Mahsulotlarni ko‘rish" %}
+  {% endif %}
+</div>
+{% endblock %}

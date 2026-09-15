@@ -1,0 +1,40 @@
+<div class="creator-card">
+  {% if seller.avatar %}
+    <img src="{{ seller.avatar.url }}" alt="{{ seller.store_name }}" class="creator-avatar">
+  {% else %}
+    <div class="creator-avatar" style="display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; color: #fff; background: var(--accent);">
+      {{ seller.store_name|make_list|first|upper }}
+    </div>
+  {% endif %}
+
+  <h4 class="creator-name">
+    <a href="{% url 'seller_profile' seller.slug %}">{{ seller.store_name }}</a>
+    {% if seller.is_verified %}<span title="Tasdiqlangan sotuvchi" style="color: var(--accent); font-size: 0.9rem;">✓</span>{% endif %}
+  </h4>
+  <div class="creator-username">@{{ seller.user.username }}</div>
+
+  {% if seller.bio %}
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+      {{ seller.bio }}
+    </p>
+  {% endif %}
+
+  <div class="creator-stats">
+    <div>
+      <div class="creator-stat-val">⭐ {{ seller.rating|floatformat:1 }}</div>
+      <div class="creator-stat-label">Reyting</div>
+    </div>
+    <div>
+      <div class="creator-stat-val">{{ seller.approved_products_count|default:seller.products.count }}</div>
+      <div class="creator-stat-label">Mahsulotlar</div>
+    </div>
+    <div>
+      <div class="creator-stat-val">{{ seller.total_sales }}</div>
+      <div class="creator-stat-label">Sotuvlar</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 18px; width: 100%;">
+    <a href="{% url 'seller_profile' seller.slug %}" class="btn btn-outline btn-sm btn-block">Profilni ko‘rish</a>
+  </div>
+</div>

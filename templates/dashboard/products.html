@@ -1,0 +1,90 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Mahsulotlarim{% endblock %}
+
+{% block dashboard_content %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">Barcha mahsulotlaringiz ({{ products.count }} ta)</h3>
+    <a href="{% url 'dashboard_product_create' %}" class="btn btn-primary btn-sm">+ Mahsulot qo‘shish</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Mahsulot</th>
+          <th>Kategoriya</th>
+          <th>Narx</th>
+          <th>Status</th>
+          <th>Sotuvlar</th>
+          <th>Sana</th>
+          <th style="text-align: right;">Amallar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                {% if product.thumbnail %}
+                  <img src="{{ product.thumbnail.url }}" alt="{{ product.title }}" style="width: 44px; height: 32px; border-radius: var(--radius-sm); object-fit: cover;">
+                {% else %}
+                  <div style="width: 44px; height: 32px; border-radius: var(--radius-sm); background: var(--surface-elevated); display: flex; align-items: center; justify-content: center; font-size: 1rem;">📦</div>
+                {% endif %}
+                <div>
+                  <div style="font-weight: 700; color: var(--text-primary);">{{ product.title }}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">v{{ product.version }}</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ product.category.name|default:"—" }}</td>
+            <td style="font-weight: 700;">
+              {% if product.is_free %}Tekin{% else %}{{ product.price|floatformat:0 }} so‘m{% endif %}
+            </td>
+            <td>
+              {% if product.status == 'approved' %}
+                <span class="badge badge-success">Tasdiqlangan</span>
+              {% elif product.status == 'pending' %}
+                <span class="badge badge-warning">Kutilmoqda</span>
+              {% elif product.status == 'rejected' %}
+                <span class="badge badge-danger" title="{{ product.rejection_reason|default:'Ko‘rsatilmagan' }}">Rad etilgan ℹ️</span>
+              {% elif product.status == 'draft' %}
+                <span class="badge badge-muted">Qoralama</span>
+              {% elif product.status == 'suspended' %}
+                <span class="badge badge-muted">To‘xtatilgan</span>
+              {% endif %}
+
+              {% if product.status == 'rejected' and product.rejection_reason %}
+                <div style="font-size: 0.75rem; color: var(--danger); margin-top: 4px; max-width: 180px;">
+                  Sabab: {{ product.rejection_reason }}
+                </div>
+              {% endif %}
+            </td>
+            <td>{{ product.sales_count }} ta</td>
+            <td>{{ product.created_at|date:"d.m.Y" }}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                {% if product.status == 'approved' %}
+                  <a href="{% url 'product_detail' product.slug %}" class="btn btn-ghost btn-sm" title="Ko‘rish">👁️</a>
+                {% endif %}
+                <a href="{% url 'dashboard_product_edit' product.id %}" class="btn btn-secondary btn-sm" title="Tahrirlash">✏️</a>
+                <form method="POST" action="{% url 'dashboard_product_delete' product.id %}" onsubmit="return confirm('Haqiqatan ham ushbu mahsulotni o‘chirmoqchimisiz?');" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);" title="O‘chirish">🗑️</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 36px;">
+              Hozircha mahsulotlar yo‘q. <a href="{% url 'dashboard_product_create' %}" style="color: var(--accent);">Birinchi mahsulotingizni qo‘shing</a>.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

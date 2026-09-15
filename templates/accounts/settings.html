@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Sozlamalar — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px; max-width: 760px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">Profil sozlamalari</h1>
+      <p class="section-subtitle">Shaxsiy ma’lumotlaringiz va hisob xavfsizligini boshqaring</p>
+    </div>
+    <a href="{% url 'profile' %}" class="btn btn-secondary btn-sm">Profilga qaytish</a>
+  </div>
+
+  <div class="card" style="margin-bottom: 32px;">
+    <div class="card-header">
+      <h3 style="font-size: 1.15rem;">Asosiy ma’lumotlar</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{% url 'settings' %}" enctype="multipart/form-data" data-loading>
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="profile_info">
+
+        <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px; flex-wrap: wrap;">
+          <div id="avatar-preview-container" style="position: relative; width: 88px; height: 88px; flex-shrink: 0;">
+            {% if profile.avatar %}
+              <img id="avatar-preview-img" src="{{ profile.avatar.url }}" alt="{{ user.username }}" style="width: 88px; height: 88px; border-radius: var(--radius-full); object-fit: cover; border: 2px solid var(--accent); box-shadow: var(--shadow-sm);">
+            {% else %}
+              <div id="avatar-preview-placeholder" style="width: 88px; height: 88px; border-radius: var(--radius-full); background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: #fff; box-shadow: var(--shadow-sm);">
+                {{ user.first_name|default:user.username|make_list|first|upper }}
+              </div>
+            {% endif %}
+          </div>
+          <div style="flex-grow: 1; min-width: 220px;">
+            <label for="avatar" class="form-label" style="font-weight: 600;">Profil rasmi (Avatar)</label>
+            <input type="file" id="avatar" name="avatar" class="form-input" accept=".jpg,.jpeg,.png,.webp,.gif,.heic" data-max-size="5" data-allowed-ext="jpg,jpeg,png,webp,gif,heic">
+            <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 5px 10px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted);">
+              <span>🛡️</span>
+              <span><strong>Ruxsat etilgan:</strong> JPG, PNG, WEBP, GIF, HEIC • <strong>Limit:</strong> max 5 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="first_name" class="form-label">Ism</label>
+            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="last_name" class="form-label">Familiya</label>
+            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="username" class="form-label">Foydalanuvchi nomi (@username)</label>
+            <input type="text" id="username" name="username" value="{{ user.username }}" class="form-input" required placeholder="username">
+            <span class="form-hint" style="display: block; margin-top: 4px; font-size: 0.78rem; color: var(--text-muted);">Lotin harflari, sonlar va ostki chiziq (_)</span>
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Elektron pochta</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phone" class="form-label">Telefon raqami</label>
+          <input type="text" id="phone" name="phone" value="{{ user.profile.phone }}" class="form-input" placeholder="+998 90 123 45 67">
+        </div>
+
+        <div class="form-group">
+          <label for="bio" class="form-label">O‘zingiz haqingizda (Bio)</label>
+          <textarea id="bio" name="bio" class="form-textarea" rows="3" placeholder="Dasturchi, dizayner...">{{ user.profile.bio }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-loading-text="⏳ Saqlanmoqda...">Ma’lumotlarni saqlash</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 style="font-size: 1.15rem;">Parolni o‘zgartirish</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{% url 'settings' %}" data-loading>
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="change_password">
+
+        <div class="form-group">
+          <label for="current_password" class="form-label">Hozirgi parol</label>
+          <input type="password" id="current_password" name="current_password" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="new_password" class="form-label">Yangi parol</label>
+          <input type="password" id="new_password" name="new_password" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="new_password_confirm" class="form-label">Yangi parolni tasdiqlang</label>
+          <input type="password" id="new_password_confirm" name="new_password_confirm" class="form-input" required>
+        </div>
+
+        <button type="submit" class="btn btn-secondary" data-loading-text="⏳ O‘zgartirilmoqda...">Parolni yangilash</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

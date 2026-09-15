@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}500 — Server xatosi — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="text-align: center; max-width: 540px; margin: 40px auto;">
+  <div style="font-size: 5.5rem; font-weight: 800; line-height: 1; margin-bottom: 12px; color: var(--warning);">500</div>
+  <h1 style="font-size: 1.8rem; margin-bottom: 12px;">Serverda xatolik yuz berdi.</h1>
+  <p style="color: var(--text-muted); margin-bottom: 28px;">Kechirasiz, tizimda kutilmagan nosozlik sodir bo‘ldi. Mutaxassislarimiz bu muammoni bartaraf etishmoqda.</p>
+  <div style="display: flex; justify-content: center; gap: 14px;">
+    <a href="{% url 'home' %}" class="btn btn-primary">Bosh sahifaga qaytish</a>
+  </div>
+</div>
+{% endblock %}

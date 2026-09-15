@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Barcha Kategoriyalar — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">Kategoriyalar</h1>
+      <p class="section-subtitle">Raqamli mahsulotlarning barcha yo‘nalishlari bo‘yicha katalog</p>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    {% for cat in categories %}
+      <a href="{% url 'category_detail' cat.slug %}" class="card card-hover" style="padding: 24px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div class="category-icon-box">{{ cat.icon }}</div>
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">{{ cat.name }}</h2>
+            <span class="badge badge-primary" style="margin-top: 4px;">{{ cat.approved_products_count }} ta mahsulot</span>
+          </div>
+        </div>
+        {% if cat.description %}
+          <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; flex-grow: 1;">
+            {{ cat.description }}
+          </p>
+        {% endif %}
+        <div style="color: var(--accent); font-weight: 600; font-size: 0.88rem; margin-top: auto;">
+          Mahsulotlarni ko‘rish →
+        </div>
+      </a>
+    {% empty %}
+      <p style="color: var(--text-muted);">Hozircha kategoriyalar mavjud emas.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

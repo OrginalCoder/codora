@@ -1,0 +1,109 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}Do‘kon sozlamalari{% endblock %}
+
+{% block dashboard_content %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">Do‘kon ma’lumotlarini tahrirlash</h3>
+  </div>
+
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data" data-loading>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="store_name" class="form-label">Do‘kon / Muallif nomi *</label>
+        <input type="text" id="store_name" name="store_name" value="{{ seller.store_name }}" class="form-input" required>
+      </div>
+
+      <div class="form-group">
+        <label for="bio" class="form-label">Do‘kon tavsifi (Bio)</label>
+        <textarea id="bio" name="bio" class="form-textarea" rows="4">{{ seller.bio }}</textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="avatar" class="form-label">Do‘kon logotipi / Avatari</label>
+          <input type="file" id="avatar" name="avatar" class="form-input" accept=".jpg,.jpeg,.png,.webp" data-max-size="5" data-allowed-ext="jpg,jpeg,png,webp">
+          <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 8px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--text-muted);">
+            <span>🛡️</span>
+            <span><strong>Format:</strong> JPG, PNG, WEBP • <strong>Limit:</strong> max 5 MB</span>
+          </div>
+          {% if seller.avatar %}
+            <div style="margin-top: 8px;">
+              <img src="{{ seller.avatar.url }}" alt="Avatar" style="width: 50px; height: 50px; border-radius: var(--radius-full); object-fit: cover;">
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="banner" class="form-label">Do‘kon banneri</label>
+          <input type="file" id="banner" name="banner" class="form-input" accept=".jpg,.jpeg,.png,.webp" data-max-size="10" data-allowed-ext="jpg,jpeg,png,webp">
+          <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 8px; background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--text-muted);">
+            <span>🛡️</span>
+            <span><strong>Format:</strong> JPG, PNG, WEBP • <strong>Limit:</strong> max 10 MB</span>
+          </div>
+          {% if seller.banner %}
+            <div style="margin-top: 8px;">
+              <img src="{{ seller.banner.url }}" alt="Banner" style="height: 50px; border-radius: 4px; object-fit: cover;">
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label for="telegram" class="form-label">Telegram (@username)</label>
+          <input type="text" id="telegram" name="telegram" value="{{ seller.telegram }}" class="form-input" placeholder="@username">
+        </div>
+
+        <div class="form-group">
+          <label for="github" class="form-label">GitHub URL</label>
+          <input type="url" id="github" name="github" value="{{ seller.github }}" class="form-input" placeholder="https://github.com/...">
+        </div>
+
+        <div class="form-group">
+          <label for="website" class="form-label">Shaxsiy veb-sayt</label>
+          <input type="url" id="website" name="website" value="{{ seller.website }}" class="form-input" placeholder="https://...">
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light);">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>💳</span> <span>To‘lov qabul qilish rekvizitlari (Karta ma’lumotlari)</span>
+        </h4>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+          Xaridorlar mahsulotingizni sotib olayotganda to‘lovni to‘g‘ridan-to‘g‘ri ushbu kartaga o‘tkazadilar.
+        </p>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="card_number" class="form-label">Karta raqami *</label>
+            <input type="text" id="card_number" name="card_number" value="{{ seller.card_number|default:'' }}" class="form-input" placeholder="8600 0000 0000 0000">
+            <span class="form-hint">Uzcard, Humo yoki Visa</span>
+          </div>
+
+          <div class="form-group">
+            <label for="card_holder" class="form-label">Karta egasi (F.I.SH) *</label>
+            <input type="text" id="card_holder" name="card_holder" value="{{ seller.card_holder|default:'' }}" class="form-input" placeholder="ALISHER VALIYEV">
+            <span class="form-hint">Kartada yozilganidek</span>
+          </div>
+
+          <div class="form-group">
+            <label for="bank_name" class="form-label">Bank yoki Hamyon</label>
+            <input type="text" id="bank_name" name="bank_name" value="{{ seller.bank_name|default:'' }}" class="form-input" placeholder="TBC Bank / Payme / Click">
+            <span class="form-hint">Xaridorga qulay bo‘lishi uchun</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 24px;">
+        <button type="submit" class="btn btn-primary btn-lg" data-loading-text="⏳ Saqlanmoqda...">
+          Sozlamalarni saqlash
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+<div class="empty-state">
+  <div class="empty-state-icon">{{ empty_icon|default:"📦" }}</div>
+  <h3 class="empty-state-title">{{ empty_title|default:"Hozircha hech narsa yo‘q" }}</h3>
+  <p class="empty-state-desc">{{ empty_desc|default:"Bu bo‘limda hozircha ma’lumot mavjud emas." }}</p>
+  {% if empty_action_url and empty_action_text %}
+    <a href="{{ empty_action_url }}" class="btn btn-primary">{{ empty_action_text }}</a>
+  {% endif %}
+</div>

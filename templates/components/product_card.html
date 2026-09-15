@@ -1,0 +1,71 @@
+<article class="product-card">
+  <div class="product-card-thumb-wrapper">
+    <a href="{% url 'product_detail' product.slug %}">
+      {% if product.thumbnail %}
+        <img src="{{ product.thumbnail.url }}" alt="{{ product.title }}" class="product-card-thumb" loading="lazy">
+      {% else %}
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--surface-elevated); color: var(--text-dim); font-size: 2.5rem;">
+          {{ product.category.icon|default:'📦' }}
+        </div>
+      {% endif %}
+    </a>
+
+    <div class="product-card-badges">
+      {% if product.discount_percent > 0 %}
+        <span class="badge badge-discount">-{{ product.discount_percent }}%</span>
+      {% elif product.is_free %}
+        <span class="badge badge-success">Tekin</span>
+      {% endif %}
+    </div>
+
+    {% if request.user.is_authenticated %}
+      <button type="button" class="product-card-wishlist {% if product.id in user_wishlist_ids %}active{% endif %}" data-wishlist-toggle="{{ product.id }}" aria-label="Sevimlilarga qo‘shish">
+        ♥
+      </button>
+    {% else %}
+      <a href="{% url 'login' %}?next={% url 'product_detail' product.slug %}" class="product-card-wishlist" title="Kirish">
+        ♥
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="product-card-body">
+    <div class="product-card-category">{{ product.category.name|default:'Raqamli' }}</div>
+    <h3 class="product-card-title">
+      <a href="{% url 'product_detail' product.slug %}">{{ product.title }}</a>
+    </h3>
+    <p class="product-card-desc">{{ product.short_description }}</p>
+
+    <div class="product-card-seller">
+      <a href="{% url 'seller_profile' product.seller.slug %}" style="display: flex; align-items: center; gap: 8px;">
+        {% if product.seller.avatar %}
+          <img src="{{ product.seller.avatar.url }}" alt="{{ product.seller.store_name }}" class="seller-mini-avatar">
+        {% else %}
+          <div class="seller-mini-avatar" style="display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; background: var(--accent);">
+            {{ product.seller.store_name|make_list|first|upper }}
+          </div>
+        {% endif %}
+        <span class="seller-mini-name">{{ product.seller.store_name }}</span>
+      </a>
+    </div>
+
+    <div class="product-card-footer">
+      <div class="product-card-price-group">
+        {% if product.is_free %}
+          <span class="product-card-price" style="color: var(--success);">Tekin</span>
+        {% else %}
+          <span class="product-card-price">{{ product.effective_price|floatformat:0 }} so‘m</span>
+          {% if product.discount_price and product.discount_price < product.price %}
+            <span class="product-card-old-price">{{ product.price|floatformat:0 }} so‘m</span>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="product-card-rating">
+        <span>⭐</span>
+        <span>{{ product.rating|floatformat:1 }}</span>
+        <span class="product-card-reviews-count">({{ product.reviews_count }})</span>
+      </div>
+    </div>
+  </div>
+</article>

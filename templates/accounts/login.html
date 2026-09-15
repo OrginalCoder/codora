@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Kirish — Codora{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Codora'ga kirish</h1>
+      <p class="auth-subtitle">Hisobingizga kiring va raqamli mahsulotlaringizni boshqaring</p>
+    </div>
+
+    {% if error %}
+      <div style="background: var(--danger-bg); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.9rem;">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'login' %}" data-loading>
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="username" class="form-label">Foydalanuvchi nomi yoki Email</label>
+        <input type="text" id="username" name="username" class="form-input" required placeholder="foydalanuvchi" value="{{ username|default:'' }}" autofocus>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label for="password" class="form-label">Parol</label>
+          <a href="#" style="font-size: 0.8rem; color: var(--accent);" onclick="alert('Parolni tiklash uchun qo‘llab-quvvatlash xizmati bilan bog‘laning: support@codora.uz'); return false;">Parolni unutdingizmi?</a>
+        </div>
+        <input type="password" id="password" name="password" class="form-input" required placeholder="••••••••">
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" data-loading-text="⏳ Kirilmoqda...">
+          Kirish
+        </button>
+      </div>
+    </form>
+
+    <div style="text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-light); font-size: 0.9rem; color: var(--text-muted);">
+      Hisobingiz yo‘qmi? <a href="{% url 'register' %}" style="color: var(--accent); font-weight: 600;">Ro‘yxatdan o‘tish</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

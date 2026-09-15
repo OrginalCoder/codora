@@ -1,0 +1,51 @@
+{% load static %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="{% url 'home' %}" class="logo-brand">
+          <img src="{% static 'img/logo.png' %}" alt="Codora" class="logo-brand-img" width="36" height="36">
+          <span class="logo-brand-text">Codora</span>
+        </a>
+        <p>Raqamli mahsulotlar uchun zamonaviy marketplace. Dasturchilar va ijodkorlar uchun xavfsiz va ishonchli ekotizim.</p>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platforma</div>
+        <div class="footer-links">
+          <a href="{% url 'marketplace' %}" class="footer-link">Mahsulotlar</a>
+          <a href="{% url 'categories_list' %}" class="footer-link">Kategoriyalar</a>
+          <a href="{% url 'sellers_list' %}" class="footer-link">Sotuvchilar</a>
+          <a href="{% url 'become_seller' %}" class="footer-link">Sotuvchi bo‘lish</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Foydalanuvchi</div>
+        <div class="footer-links">
+          <a href="{% url 'profile' %}" class="footer-link">Profilim</a>
+          <a href="{% url 'library' %}" class="footer-link">Xaridlarim</a>
+          <a href="{% url 'wishlist' %}" class="footer-link">Sevimlilar</a>
+          <a href="{% url 'cart' %}" class="footer-link">Savat</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Huquqiy</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Foydalanish shartlari</a>
+          <a href="#" class="footer-link">Maxfiylik siyosati</a>
+          <a href="#" class="footer-link">Litsenziya shartlari</a>
+          <a href="#" class="footer-link">Qo‘llab-quvvatlash</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 Codora — Barcha huquqlar himoyalangan.</div>
+      <div style="display: flex; gap: 16px;">
+        <span style="color: var(--text-dim);">Xavfsiz to‘lov va tezkor yuklab olish</span>
+      </div>
+    </div>
+  </div>
+</footer>

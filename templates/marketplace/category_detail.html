@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} — Codora{% endblock %}
+{% block meta_description %}{{ category.description }}{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="breadcrumb">
+    <a href="{% url 'home' %}">Bosh sahifa</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="{% url 'categories_list' %}">Kategoriyalar</a>
+    <span class="breadcrumb-sep">/</span>
+    <span style="color: var(--text-primary);">{{ category.name }}</span>
+  </div>
+
+  <div class="card" style="margin-bottom: 40px; padding: 32px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(10, 14, 23, 0.8) 100%), var(--surface);">
+    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+      <div style="width: 72px; height: 72px; border-radius: var(--radius-lg); background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+        {{ category.icon }}
+      </div>
+      <div>
+        <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 6px;">{{ category.name }}</h1>
+        <p style="color: var(--text-secondary); max-width: 600px; font-size: 0.95rem;">
+          {{ category.description|default:"Ushbu bo‘limdagi barcha raqamli mahsulotlar va dasturiy ta’minotlar." }}
+        </p>
+        <div style="margin-top: 12px; font-size: 0.85rem; color: var(--accent); font-weight: 600;">
+          {{ paginator.count }} ta tasdiqlangan mahsulot
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if featured_products %}
+    <div style="margin-bottom: 48px;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Saralangan loyihalar</h2>
+          <p class="section-subtitle">Ushbu toifaning eng ko‘p tavsiya etilgan namunalari</p>
+        </div>
+      </div>
+      <div class="grid-4">
+        {% for prod in featured_products %}
+          {% include 'components/product_card.html' with product=prod %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="section-header" style="margin-bottom: 24px;">
+    <div>
+      <h2 class="section-title">Barcha mahsulotlar</h2>
+      <p class="section-subtitle">{{ category.name }} bo‘limidagi barcha ishlanmalar</p>
+    </div>
+  </div>
+
+  {% if page_obj %}
+    <div class="grid-4">
+      {% for product in page_obj %}
+        {% include 'components/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+    {% include 'components/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    {% include 'components/empty_state.html' with empty_icon=category.icon empty_title="Bu kategoriyada hozircha mahsulotlar yo‘q" empty_desc="Tez orada bu yerga yangi mahsulotlar qo‘shiladi yoki o‘zingiz birinchi bo‘lib mahsulotingizni soting!" empty_action_url="/marketplace/" empty_action_text="Boshqa mahsulotlar" %}
+  {% endif %}
+</div>
+{% endblock %}

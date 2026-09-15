@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ seller.store_name }} — Codora Sotuvchisi{% endblock %}
+{% block meta_description %}{{ seller.bio }}{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="card" style="margin-bottom: 36px; overflow: hidden;">
+    {% if seller.banner %}
+      <div style="height: 180px; width: 100%; background: url('{{ seller.banner.url }}') center/cover no-repeat;"></div>
+    {% else %}
+      <div style="height: 140px; width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);"></div>
+    {% endif %}
+
+    <div class="card-body" style="position: relative; padding-top: 0;">
+      <div style="display: flex; gap: 24px; align-items: flex-end; margin-top: -50px; margin-bottom: 20px; flex-wrap: wrap;">
+        {% if seller.avatar %}
+          <img src="{{ seller.avatar.url }}" alt="{{ seller.store_name }}" style="width: 100px; height: 100px; border-radius: var(--radius-full); object-fit: cover; border: 4px solid var(--surface); box-shadow: var(--shadow-md);">
+        {% else %}
+          <div style="width: 100px; height: 100px; border-radius: var(--radius-full); background: var(--accent-gradient); color: #fff; font-size: 2.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 4px solid var(--surface); box-shadow: var(--shadow-md);">
+            {{ seller.store_name|make_list|first|upper }}
+          </div>
+        {% endif %}
+
+        <div style="flex-grow: 1;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h1 style="font-size: 1.8rem; font-weight: 800;">{{ seller.store_name }}</h1>
+            {% if seller.is_verified %}
+              <span class="badge badge-primary">✓ Tasdiqlangan muallif</span>
+            {% endif %}
+          </div>
+          <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">
+            @{{ seller.user.username }} • A’zo bo‘lgan: {{ seller.created_at|date:"d.m.Y" }}
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+          {% if seller.telegram %}
+            <a href="https://t.me/{{ seller.telegram|cut:'@' }}" target="_blank" class="btn btn-secondary btn-sm">Telegram</a>
+          {% endif %}
+          {% if seller.github %}
+            <a href="{{ seller.github }}" target="_blank" class="btn btn-secondary btn-sm">GitHub</a>
+          {% endif %}
+          {% if seller.website %}
+            <a href="{{ seller.website }}" target="_blank" class="btn btn-secondary btn-sm">Veb-sayt</a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if seller.bio %}
+        <p style="color: var(--text-secondary); max-width: 800px; line-height: 1.6; margin-bottom: 24px;">
+          {{ seller.bio }}
+        </p>
+      {% endif %}
+
+      <div class="creator-stats" style="justify-content: flex-start; gap: 36px; padding-top: 16px;">
+        <div>
+          <div class="creator-stat-val">⭐ {{ seller.rating|floatformat:1 }}</div>
+          <div class="creator-stat-label">Reyting</div>
+        </div>
+        <div>
+          <div class="creator-stat-val">{{ products.count }}</div>
+          <div class="creator-stat-label">Tasdiqlangan mahsulotlar</div>
+        </div>
+        <div>
+          <div class="creator-stat-val">{{ seller.total_sales }}</div>
+          <div class="creator-stat-label">Jami sotuvlar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-wrapper">
+    <div class="tabs-nav">
+      <button type="button" class="tab-link active" data-tab="tab-seller-products">Mahsulotlar ({{ products.count }})</button>
+      <button type="button" class="tab-link" data-tab="tab-seller-reviews">Mijozlar sharhlari ({{ reviews.count }})</button>
+    </div>
+
+    <div class="tab-pane active" id="tab-seller-products">
+      {% if products %}
+        <div class="grid-4">
+          {% for product in products %}
+            {% include 'components/product_card.html' with product=product %}
+          {% endfor %}
+        </div>
+      {% else %}
+        {% include 'components/empty_state.html' with empty_icon="📦" empty_title="Mahsulotlar hozircha yo‘q" empty_desc="Muallif hozircha barcha mahsulotlarini yangilamoqda." %}
+      {% endif %}
+    </div>
+
+    <div class="tab-pane" id="tab-seller-reviews">
+      {% if reviews %}
+        <div class="grid-2">
+          {% for rev in reviews %}
+            <div class="card" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 700; color: var(--text-primary);">{{ rev.product.title }}</span>
+                <span style="color: var(--warning); font-weight: 700;">{{ rev.rating }} ★</span>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px;">{{ rev.comment }}</p>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">
+                {{ rev.user.username }} • {{ rev.created_at|date:"d.m.Y" }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% include 'components/empty_state.html' with empty_icon="⭐" empty_title="Hozircha sharhlar yo‘q" empty_desc="Bu muallif mahsulotlariga hali sharh yozilmagan." %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

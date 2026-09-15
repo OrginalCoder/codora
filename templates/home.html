@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Codora — Dasturchilar va Ijodkorlar Marketpleysi{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <div class="hero-glow-1"></div>
+  <div class="hero-glow-2"></div>
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge">
+          <span>⚡</span>
+          <span>Dasturchilar va ijodkorlar ekotizimi</span>
+        </div>
+        <h1 class="hero-title">
+          Ishlab chiqishni noldan emas, <br>
+          <span class="gradient-text">tayyor koddan boshlang.</span>
+        </h1>
+        <p class="hero-subtitle">
+          Ishonchli Telegram botlar, SaaS boilerplatelar, frontend shablonlar va API modullar — to‘liq ochiq manba kodi va litsenziyasi bilan.
+        </p>
+        <div class="hero-buttons">
+          <a href="{% url 'marketplace' %}" class="btn btn-primary btn-lg">Mahsulotlarni ko‘rish</a>
+          {% if request.user.seller_profile %}
+            <a href="{% url 'dashboard_product_create' %}" class="btn btn-secondary btn-lg">Mahsulot qo‘shish</a>
+          {% else %}
+            <a href="{% url 'become_seller' %}" class="btn btn-secondary btn-lg">Sotishni boshlash</a>
+          {% endif %}
+        </div>
+
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-val">{{ stats.products_count|default:"500+" }}</div>
+            <div class="hero-stat-label">Mahsulotlar</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">{{ stats.sellers_count|default:"120+" }}</div>
+            <div class="hero-stat-label">Mualliflar</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">{{ stats.sales_count|default:"2.4k+" }}</div>
+            <div class="hero-stat-label">Xaridlar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-badge-float-top">
+          <span>⚡</span>
+          <span>Jonli Savdolar Oqimi</span>
+        </div>
+
+        <div class="hero-preview-card">
+          <div class="hero-card-window-bar">
+            <div class="hero-live-badge">
+              <span class="hero-live-dot"></span>
+              <span>Platforma faolligi</span>
+            </div>
+            <span class="badge badge-success">+18% Bugun</span>
+          </div>
+
+          <div class="hero-preview-body">
+            <div class="hero-summary-box">
+              <div>
+                <div class="hero-summary-label">Bugungi jami savdolar</div>
+                <div class="hero-summary-value">2,450,000 UZS</div>
+              </div>
+              <div>
+                <span class="badge badge-primary">38 ta muvaffaqiyatli bitim</span>
+              </div>
+            </div>
+
+            <div class="hero-showcase-list">
+              <div class="hero-showcase-item">
+                <div class="hero-showcase-icon hero-icon-blue">🚀</div>
+                <div class="hero-showcase-content">
+                  <div class="hero-showcase-top">
+                    <span class="hero-showcase-title">Next.js SaaS Shablon</span>
+                    <span class="hero-showcase-price">+320,000 UZS</span>
+                  </div>
+                  <div class="hero-showcase-bottom">
+                    <span class="hero-showcase-meta">Jasur K. • 1 daqiqa oldin xarid qilindi</span>
+                    <span class="hero-showcase-status">To‘landi ✅</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-showcase-item">
+                <div class="hero-showcase-icon hero-icon-purple">🤖</div>
+                <div class="hero-showcase-content">
+                  <div class="hero-showcase-top">
+                    <span class="hero-showcase-title">Telegram E-commerce Bot</span>
+                    <span class="hero-showcase-price">+189,000 UZS</span>
+                  </div>
+                  <div class="hero-showcase-bottom">
+                    <span class="hero-showcase-meta">Otabek R. • 8 daqiqa oldin xarid qilindi</span>
+                    <span class="hero-showcase-status">To‘landi ✅</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-showcase-item">
+                <div class="hero-showcase-icon hero-icon-amber">🎨</div>
+                <div class="hero-showcase-content">
+                  <div class="hero-showcase-top">
+                    <span class="hero-showcase-title">Figma Mobile UI Kit</span>
+                    <span class="hero-showcase-price">+145,000 UZS</span>
+                  </div>
+                  <div class="hero-showcase-bottom">
+                    <span class="hero-showcase-meta">Aziza M. • 25 daqiqa oldin xarid qilindi</span>
+                    <span class="hero-showcase-status">To‘landi ✅</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-payout-box">
+              <div class="hero-payout-content">
+                <div>
+                  <div class="hero-payout-title">Bir zumda to‘lov va komissiyasiz yechib olish</div>
+                  <div class="hero-payout-subtitle">O‘zbekiston bo‘yicha istalgan bank kartasiga</div>
+                </div>
+                <div class="hero-payout-badges">
+                  <span class="hero-payout-badge">Payme</span>
+                  <span class="hero-payout-badge">Click</span>
+                  <span class="hero-payout-badge">Uzum</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-spacer" style="padding-top: 20px;">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Ommabop kategoriyalar</h2>
+        <p class="section-subtitle">O‘zingizga kerakli yo‘nalishdagi mahsulotlarni tanlang</p>
+      </div>
+      <a href="{% url 'categories_list' %}" class="btn btn-outline btn-sm">Barcha kategoriyalar →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for cat in featured_categories %}
+        <a href="{% url 'category_detail' cat.slug %}" class="category-card-modern">
+          <div class="category-icon-box">{{ cat.icon }}</div>
+          <div>
+            <h3 class="category-name">{{ cat.name }}</h3>
+            <div class="category-count">{{ cat.approved_products_count }} ta mahsulot</div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="category-card-modern">
+          <div class="category-icon-box">💻</div>
+          <div>
+            <h3 class="category-name">Manba Kodlari</h3>
+            <div class="category-count">Tayyor tizimlar</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if trending_products %}
+<section class="section-spacer">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="badge badge-primary" style="margin-bottom: 8px;">🔥 Eng qizg‘in</div>
+        <h2 class="section-title">Trenddagi mahsulotlar</h2>
+        <p class="section-subtitle">Foydalanuvchilar orasida eng ko‘p ko‘rilayotgan va xarid qilinayotgan loyihalar</p>
+      </div>
+      <a href="{% url 'marketplace' %}?sort=popular" class="btn btn-outline btn-sm">Barchasini ko‘rish →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for product in trending_products %}
+        {% include 'components/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if best_sellers %}
+<section class="section-spacer" style="background: var(--bg-secondary); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="badge badge-warning" style="margin-bottom: 8px;">🏆 Xit savdolar</div>
+        <h2 class="section-title">Eng ko‘p sotilganlar</h2>
+        <p class="section-subtitle">Mijozlar tomonidan eng yuqori baholangan ishonchli mahsulotlar</p>
+      </div>
+      <a href="{% url 'marketplace' %}?sort=sales" class="btn btn-outline btn-sm">Barchasini ko‘rish →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for product in best_sellers %}
+        {% include 'components/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if new_products %}
+<section class="section-spacer">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="badge badge-success" style="margin-bottom: 8px;">🆕 Yangiliklar</div>
+        <h2 class="section-title">Yangi qo‘shilgan mahsulotlar</h2>
+        <p class="section-subtitle">Katalogimizga yaqinda tasdiqlangan eng yangi loyihalar</p>
+      </div>
+      <a href="{% url 'marketplace' %}?sort=newest" class="btn btn-outline btn-sm">Barchasini ko‘rish →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for product in new_products %}
+        {% include 'components/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if top_creators %}
+<section class="section-spacer" style="background: var(--bg-secondary); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="badge badge-primary" style="margin-bottom: 8px;">⭐ Mualliflar</div>
+        <h2 class="section-title">Yetakchi ijodkorlar</h2>
+        <p class="section-subtitle">Codora platformasining eng faol va ishonchli dasturchi va dizaynerlari</p>
+      </div>
+      <a href="{% url 'sellers_list' %}" class="btn btn-outline btn-sm">Barcha mualliflar →</a>
+    </div>
+
+    <div class="grid-4">
+      {% for seller in top_creators %}
+        {% include 'components/seller_card.html' with seller=seller %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section-spacer">
+  <div class="container">
+    <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 48px;">
+      <div>
+        <h2 class="section-title">Nega aynan Codora?</h2>
+        <p class="section-subtitle">Raqamli mahsulotlar savdosi uchun yaratilgan qulay va xavfsiz maydon</p>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="feature-box">
+        <div class="feature-icon-box">⚡</div>
+        <h3 class="feature-title">Tezkor xarid</h3>
+        <p class="feature-desc">To‘lov amalga oshirilgandan so‘ng bir necha soniyada mahsulot faylini yuklab olish imkoniyati.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon-box">🔐</div>
+        <h3 class="feature-title">Xavfsiz yuklab olish</h3>
+        <p class="feature-desc">Barcha fayllar himoyalangan serverlarda saqlanadi va faqat rasmiy xaridorlarga beriladi.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon-box">⭐</div>
+        <h3 class="feature-title">Ishonchli sotuvchilar</h3>
+        <p class="feature-desc">Har bir mahsulot va muallif moderatorlarimiz tomonidan sinchkovlik bilan tekshirib tasdiqlanadi.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon-box">📦</div>
+        <h3 class="feature-title">Raqamli mahsulotlar</h3>
+        <p class="feature-desc">Botlar, veb-shablonlar, skriptlar, mobil ilovalar va UI kitlar uchun yagona marketplace.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-spacer" style="padding-top: 0;">
+  <div class="container">
+    <div class="cta-banner">
+      <h2 class="cta-title">Mahsulotingizni sotishni boshlang.</h2>
+      <p class="cta-subtitle">Dasturingiz, botingiz yoki dizayningiz bormi? Codora orqali uni minglab foydalanuvchilarga soting va barqaror daromad oling.</p>
+      {% if request.user.seller_profile %}
+        <a href="{% url 'dashboard_overview' %}" class="btn btn-primary btn-lg">Sotuvchi paneliga o‘tish</a>
+      {% else %}
+        <a href="{% url 'become_seller' %}" class="btn btn-primary btn-lg">Sotuvchi bo‘lish</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

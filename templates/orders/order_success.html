@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if order.status == 'paid' %}Xarid muvaffaqiyatli{% else %}To‘lov cheki yuborildi{% endif %} — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="max-width: 680px; text-align: center; padding-top: 32px;">
+  <div class="checkout-steps">
+    <div class="checkout-step completed">
+      <span class="checkout-step-num">✓</span>
+      <span>Savat</span>
+    </div>
+    <div class="checkout-step-line active"></div>
+    <div class="checkout-step completed">
+      <span class="checkout-step-num">✓</span>
+      <span>To‘lov</span>
+    </div>
+    <div class="checkout-step-line active"></div>
+    <div class="checkout-step active">
+      <span class="checkout-step-num">3</span>
+      <span>Tasdiqlash</span>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 40px 32px;">
+    {% if order.status == 'paid' %}
+      <div style="font-size: 3.5rem; margin-bottom: 16px;">🎉</div>
+      <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">
+        Xarid muvaffaqiyatli amalga oshirildi!
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+        Buyurtmangiz to‘liq to‘landi va mahsulotlar shaxsiy kutubxonangizga biriktirildi.
+      </p>
+    {% else %}
+      <div style="font-size: 3.5rem; margin-bottom: 16px;">⏳</div>
+      <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">
+        To‘lov cheki qabul qilindi!
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+        To‘lov chekingiz sotuvchiga yuborildi. Sotuvchi to‘lovni tasdiqlashi bilan mahsulot manba kodi profilingizda ochiladi.
+      </p>
+    {% endif %}
+
+    <div class="order-timeline" style="text-align: left; max-width: 480px; margin: 0 auto 28px auto;">
+      <div class="timeline-item completed">
+        <div class="timeline-dot">✓</div>
+        <div class="timeline-title">Chek yuklandi</div>
+        <div class="timeline-desc">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      <div class="timeline-item {% if order.status == 'paid' %}completed{% else %}active{% endif %}">
+        <div class="timeline-dot">{% if order.status == 'paid' %}✓{% else %}2{% endif %}</div>
+        <div class="timeline-title">Sotuvchi tekshiruvi</div>
+        <div class="timeline-desc">{% if order.status == 'paid' %}To‘lov to‘liq tasdiqlandi{% else %}Sotuvchi bank hisobini solishtirmoqda{% endif %}</div>
+      </div>
+      <div class="timeline-item {% if order.status == 'paid' %}completed{% endif %}">
+        <div class="timeline-dot">{% if order.status == 'paid' %}✓{% else %}3{% endif %}</div>
+        <div class="timeline-title">Faylni yuklab olish</div>
+        <div class="timeline-desc">Kutubxonada doimiy foydalanish uchun mavjud</div>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; text-align: left; margin-bottom: 32px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+        <span style="color: var(--text-muted);">Buyurtma raqami:</span>
+        <strong style="color: var(--accent); font-family: monospace;">#{{ order.order_number }}</strong>
+      </div>
+      {% if order.seller %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+          <span style="color: var(--text-muted);">Sotuvchi:</span>
+          <strong style="color: var(--text-primary);">{{ order.seller.store_name }}</strong>
+        </div>
+      {% endif %}
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+        <span style="color: var(--text-muted);">Sana:</span>
+        <span>{{ order.created_at|date:"d.m.Y H:i" }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+        <span style="color: var(--text-muted);">Summa:</span>
+        <strong style="color: var(--text-primary);">{{ order.final_amount|floatformat:0 }} so‘m</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+        <span style="color: var(--text-muted);">Holat:</span>
+        {% if order.status == 'paid' %}
+          <span class="badge badge-success">✅ To‘langan</span>
+        {% elif order.status == 'pending_verification' %}
+          <span class="badge badge-warning">⏳ Chek tekshirilmoqda</span>
+        {% elif order.status == 'rejected' %}
+          <span class="badge badge-danger">❌ Rad etilgan</span>
+        {% else %}
+          <span class="badge badge-muted">{{ order.get_status_display }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;">
+      {% for item in order.items.all %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface-elevated); border-radius: var(--radius-md); text-align: left;">
+          <div>
+            <div style="font-weight: 700;">{{ item.product_title }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Versiya: {{ item.product_version }}</div>
+          </div>
+          {% if order.status == 'paid' %}
+            <a href="{% url 'download_product' item.id %}" class="btn btn-primary btn-sm">
+              ⬇️ Yuklab olish
+            </a>
+          {% else %}
+            <span class="badge badge-warning" style="font-size: 0.8rem;">
+              ⏳ Tasdiq kutilmoqda
+            </span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+      <a href="{% url 'library' %}" class="btn btn-primary">
+        📦 Xaridlarim
+      </a>
+      <a href="{% url 'marketplace' %}" class="btn btn-outline">
+        Marketplace'ga qaytish
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

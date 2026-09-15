@@ -1,0 +1,144 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_title %}
+  {% if is_edit %}Mahsulotni tahrirlash{% else %}Yangi mahsulot qo‘shish{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">
+      {% if is_edit %}«{{ product.title }}» mahsulotini tahrirlash{% else %}Mahsulot ma’lumotlarini to‘ldiring{% endif %}
+    </h3>
+    <a href="{% url 'dashboard_products' %}" class="btn btn-secondary btn-sm">Ortga qaytish</a>
+  </div>
+
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data" data-loading>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="title" class="form-label">Mahsulot nomi *</label>
+        <input type="text" id="title" name="title" class="form-input" required placeholder="Masalan: Telegram AI Bot Pro" value="{{ product.title|default:'' }}">
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="category" class="form-label">Kategoriya *</label>
+          <select id="category" name="category" class="form-select" required>
+            <option value="">Kategoriyani tanlang</option>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if product.category_id == cat.id %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="version" class="form-label">Versiya *</label>
+          <input type="text" id="version" name="version" class="form-input" required placeholder="1.0.0" value="{{ product.version|default:'1.0.0' }}">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="price" class="form-label">Narxi (so‘m) *</label>
+          <input type="number" step="1" min="0" id="price" name="price" class="form-input" required placeholder="150000" value="{{ product.price|default:'0' }}">
+        </div>
+
+        <div class="form-group">
+          <label for="discount_price" class="form-label">Chegirmali narxi (so‘m)</label>
+          <input type="number" step="1" min="0" id="discount_price" name="discount_price" class="form-input" placeholder="120000" value="{{ product.discount_price|default:'' }}">
+          <span class="form-hint">Chegirma bo‘lmasa bo‘sh qoldiring</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="short_description" class="form-label">Qisqacha tavsif (1-2 gap) *</label>
+        <input type="text" id="short_description" name="short_description" class="form-input" required placeholder="Dasturning asosiy vazifasi va imkoniyatlari" value="{{ product.short_description|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="description" class="form-label">To‘liq tavsif *</label>
+        <textarea id="description" name="description" class="form-textarea" rows="6" required placeholder="Mahsulot haqida batafsil ma’lumot, qanday ishlatilishi, afzalliklari...">{{ product.description|default:'' }}</textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="file_format" class="form-label">Fayl formati</label>
+          <input type="text" id="file_format" name="file_format" class="form-input" placeholder="ZIP, Python, Django" value="{{ product.file_format|default:'ZIP' }}">
+        </div>
+
+        <div class="form-group">
+          <label for="compatibility" class="form-label">Moslik (Platformalar / Versiyalar)</label>
+          <input type="text" id="compatibility" name="compatibility" class="form-input" placeholder="Python 3.10+, PostgreSQL" value="{{ product.compatibility|default:'' }}">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="features" class="form-label">Xususiyatlar (Har birini yangi qatorda yozing)</label>
+          <textarea id="features" name="features" class="form-textarea" rows="4" placeholder="To‘liq avtomatlashtirilgan&#10;Tezkor ishlaydi&#10;Ko‘p tilli">{{ product.features|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="requirements" class="form-label">Tizim talablari (Har birini yangi qatorda yozing)</label>
+          <textarea id="requirements" name="requirements" class="form-textarea" rows="4" placeholder="Python 3.10 yoki yuqori&#10;Docker&#10;VPS server">{{ product.requirements|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">Asosiy rasm (Muqova / Thumbnail) {% if not is_edit %}*{% endif %}</label>
+          <div class="upload-dropzone">
+            <span class="upload-dropzone-icon">🖼️</span>
+            <div class="upload-dropzone-text">Rasmni bu yerga tashlang yoki tanlang</div>
+            <div class="upload-dropzone-hint">JPG, PNG, WEBP • Max 5 MB</div>
+            <input type="file" id="id_thumbnail" name="thumbnail" accept=".jpg,.jpeg,.png,.webp" data-max-size="5" data-allowed-ext="jpg,jpeg,png,webp" {% if not is_edit %}required{% endif %}>
+          </div>
+          {% if product.thumbnail %}
+            <div style="margin-top: 8px;">
+              <img src="{{ product.thumbnail.url }}" alt="Mavjud rasm" style="height: 60px; border-radius: 4px;">
+            </div>
+          {% endif %}
+          <img id="thumbnail-preview" src="#" alt="Preview" style="display: none; height: 60px; border-radius: 4px; margin-top: 8px;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Raqamli mahsulot fayli (ZIP/RAR/PDF/FIG) {% if not is_edit %}*{% endif %}</label>
+          <div class="upload-dropzone">
+            <span class="upload-dropzone-icon">📦</span>
+            <div class="upload-dropzone-text">Mahsulot arxivini bu yerga tashlang yoki tanlang</div>
+            <div class="upload-dropzone-hint">ZIP, RAR, 7Z, TAR, PDF, FIG • Max 100 MB</div>
+            <input type="file" id="product_file" name="product_file" accept=".zip,.rar,.7z,.tar,.pdf,.fig" data-max-size="100" data-allowed-ext="zip,rar,7z,tar,pdf,fig" {% if not is_edit %}required{% endif %}>
+          </div>
+          {% if product.file_asset %}
+            <div style="margin-top: 6px;">
+              <span class="form-hint" style="color: var(--success); font-weight: 600;">
+                ✓ Yuklangan fayl: {{ product.file_asset.file_size }} (v{{ product.file_asset.version }})
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tags" class="form-label">Teglar (vergul bilan ajratilgan)</label>
+        <input type="text" id="tags" name="tags" class="form-input" placeholder="python, telegram, bot, ai" value="{{ product.tags|default:'' }}">
+      </div>
+
+      <div class="form-group">
+        <label for="changelog" class="form-label">Yangilanishlar (Changelog)</label>
+        <textarea id="changelog" name="changelog" class="form-textarea" rows="3" placeholder="v1.0.0 - Dastlabki reliz">{{ product.changelog|default:'' }}</textarea>
+      </div>
+
+      <div class="form-group" style="margin-top: 24px;">
+        <button type="submit" class="btn btn-primary btn-lg" data-loading-text="⏳ Saqlanmoqda...">
+          {% if is_edit %}O‘zgarishlarni saqlash{% else %}Mahsulotni moderatsiyaga yuborish{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Mahsulotlar — Codora Marketpleysi{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header" style="margin-bottom: 24px;">
+    <div>
+      <h1 class="section-title">Mahsulotlar</h1>
+      <p class="section-subtitle">Kerakli raqamli mahsulotni toping.</p>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm filter-drawer-toggle" id="filter-drawer-toggle">
+      ⚙️ Filtrlash
+    </button>
+  </div>
+
+  <div class="filter-backdrop" id="filter-backdrop"></div>
+  <div class="marketplace-layout">
+    <aside class="filter-card" id="marketplace-filter-card">
+      <div class="filter-header-mobile">
+        <h3 style="font-size: 1.1rem; font-weight: 700;">Filtrlar</h3>
+        <button type="button" class="filter-close-btn" id="filter-close-btn" aria-label="Yopish">✕</button>
+      </div>
+      <form method="GET" action="{% url 'marketplace' %}">
+        {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <div class="filter-section">
+          <div class="filter-title">Kategoriya</div>
+          <div class="filter-list">
+            <a href="{% url 'marketplace' %}?{% if current_sort %}sort={{ current_sort }}&{% endif %}{% if search_query %}q={{ search_query }}{% endif %}" class="filter-item {% if not selected_category %}active{% endif %}">
+              <span>Barchasi</span>
+              <span>{{ total_count }}</span>
+            </a>
+            {% for cat in all_categories %}
+              <a href="{% url 'marketplace' %}?category={{ cat.slug }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-item {% if selected_category == cat.slug %}active{% endif %}">
+                <span>{{ cat.icon }} {{ cat.name }}</span>
+                <span>{{ cat.approved_products_count }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Narx turi</div>
+          <div class="filter-list">
+            <label class="form-check">
+              <input type="radio" name="price_type" value="all" {% if not selected_price_type or selected_price_type == 'all' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">Barcha narxlar</span>
+            </label>
+            <label class="form-check">
+              <input type="radio" name="price_type" value="paid" {% if selected_price_type == 'paid' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">Pullik mahsulotlar</span>
+            </label>
+            <label class="form-check">
+              <input type="radio" name="price_type" value="free" {% if selected_price_type == 'free' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">Tekin (bepul)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-title">Minimal reyting</div>
+          <div class="filter-list">
+            <label class="form-check">
+              <input type="radio" name="min_rating" value="0" {% if not selected_min_rating or selected_min_rating == '0' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">Barchasi</span>
+            </label>
+            <label class="form-check">
+              <input type="radio" name="min_rating" value="4.5" {% if selected_min_rating == '4.5' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">⭐ 4.5 va yuqori</span>
+            </label>
+            <label class="form-check">
+              <input type="radio" name="min_rating" value="4.0" {% if selected_min_rating == '4.0' %}checked{% endif %}>
+              <span style="font-size: 0.9rem;">⭐ 4.0 va yuqori</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 8px;">
+          <button type="submit" class="btn btn-primary btn-sm btn-block">Qo‘llash</button>
+          <a href="{% url 'marketplace' %}" class="btn btn-secondary btn-sm">Tozalash</a>
+        </div>
+      </form>
+    </aside>
+
+    <section>
+      <div class="marketplace-toolbar">
+        <div style="font-size: 0.92rem; color: var(--text-muted);">
+          Jami: <strong style="color: var(--text-primary);">{{ paginator.count }}</strong> ta mahsulot topildi
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label for="sort-select" style="font-size: 0.88rem; color: var(--text-muted); white-space: nowrap;">Saralash:</label>
+          <select id="sort-select" class="form-select" style="padding: 6px 14px; font-size: 0.88rem; width: auto;" onchange="location = this.value;">
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=recommended" {% if current_sort == 'recommended' %}selected{% endif %}>Tavsiya etilgan</option>
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=popular" {% if current_sort == 'popular' %}selected{% endif %}>Eng mashhur</option>
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=newest" {% if current_sort == 'newest' %}selected{% endif %}>Eng yangi</option>
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=rating" {% if current_sort == 'rating' %}selected{% endif %}>Eng yuqori baholangan</option>
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Narx: arzonidan</option>
+            <option value="{% url 'marketplace' %}?{% if current_query_without_sort %}{{ current_query_without_sort }}&{% endif %}sort=price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Narx: qimmatidan</option>
+          </select>
+        </div>
+      </div>
+
+      {% if selected_category or selected_price_type and selected_price_type != 'all' or selected_min_rating and selected_min_rating != '0' or search_query %}
+        <div class="filter-chips-wrapper">
+          <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 4px;">Faol filtrlar:</span>
+          {% if search_query %}
+            <span class="filter-chip">
+              🔍 "{{ search_query }}"
+              <a href="{% url 'marketplace' %}?{% if selected_category %}category={{ selected_category }}&{% endif %}{% if selected_price_type %}price_type={{ selected_price_type }}&{% endif %}{% if selected_min_rating %}min_rating={{ selected_min_rating }}&{% endif %}{% if current_sort %}sort={{ current_sort }}{% endif %}" class="filter-chip-remove" title="O‘chirish">✕</a>
+            </span>
+          {% endif %}
+          {% if selected_category %}
+            <span class="filter-chip">
+              📁 Kategoriya: {{ selected_category }}
+              <a href="{% url 'marketplace' %}?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_price_type %}price_type={{ selected_price_type }}&{% endif %}{% if selected_min_rating %}min_rating={{ selected_min_rating }}&{% endif %}{% if current_sort %}sort={{ current_sort }}{% endif %}" class="filter-chip-remove" title="O‘chirish">✕</a>
+            </span>
+          {% endif %}
+          {% if selected_price_type and selected_price_type != 'all' %}
+            <span class="filter-chip">
+              💵 Narx: {% if selected_price_type == 'free' %}Tekin{% else %}Pullik{% endif %}
+              <a href="{% url 'marketplace' %}?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if selected_min_rating %}min_rating={{ selected_min_rating }}&{% endif %}{% if current_sort %}sort={{ current_sort }}{% endif %}" class="filter-chip-remove" title="O‘chirish">✕</a>
+            </span>
+          {% endif %}
+          {% if selected_min_rating and selected_min_rating != '0' %}
+            <span class="filter-chip">
+              ⭐ Min {{ selected_min_rating }}
+              <a href="{% url 'marketplace' %}?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}{% if selected_price_type %}price_type={{ selected_price_type }}&{% endif %}{% if current_sort %}sort={{ current_sort }}{% endif %}" class="filter-chip-remove" title="O‘chirish">✕</a>
+            </span>
+          {% endif %}
+          <a href="{% url 'marketplace' %}" style="font-size: 0.8rem; color: var(--danger); margin-left: 6px; font-weight: 600;">Barchasini tozalash</a>
+        </div>
+      {% endif %}
+
+      {% if page_obj %}
+        <div class="grid-3">
+          {% for product in page_obj %}
+            {% include 'components/product_card.html' with product=product %}
+          {% endfor %}
+        </div>
+
+        {% include 'components/pagination.html' with page_obj=page_obj query_string=current_query_with_sort %}
+      {% else %}
+        {% include 'components/empty_state.html' with empty_icon="📦" empty_title="Mahsulotlar topilmadi" empty_desc="Tanlangan parametrlar bo‘yicha hech qanday mahsulot topilmadi. Filtrlarni tozalab qayta urinib ko‘ring." empty_action_url="/marketplace/" empty_action_text="Filtrlarni tozalash" %}
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

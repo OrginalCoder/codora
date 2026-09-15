@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Savat — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">🛒 Savat</h1>
+      <p class="section-subtitle">Xarid qilish uchun tanlangan mahsulotlar</p>
+    </div>
+  <div class="checkout-steps">
+    <div class="checkout-step active">
+      <span class="checkout-step-num">1</span>
+      <span>Savat</span>
+    </div>
+    <div class="checkout-step-line"></div>
+    <div class="checkout-step">
+      <span class="checkout-step-num">2</span>
+      <span>To‘lov & Chek</span>
+    </div>
+    <div class="checkout-step-line"></div>
+    <div class="checkout-step">
+      <span class="checkout-step-num">3</span>
+      <span>Tasdiqlash</span>
+    </div>
+  </div>
+
+  {% if cart_items %}
+    <div class="cart-layout">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        {% for item in cart_items %}
+          <div class="card cart-item-card">
+            <div class="cart-item-info">
+              {% if item.product.thumbnail %}
+                <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.title }}" style="width: 72px; height: 50px; border-radius: var(--radius-sm); object-fit: cover;">
+              {% else %}
+                <div style="width: 72px; height: 50px; border-radius: var(--radius-sm); background: var(--surface-elevated); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                  {{ item.product.category.icon|default:'📦' }}
+                </div>
+              {% endif %}
+              <div>
+                <a href="{% url 'product_detail' item.product.slug %}" style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem;">
+                  {{ item.product.title }}
+                </a>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+                  Sotuvchi: {{ item.product.seller.store_name }} • Versiya: {{ item.product.version }}
+                </div>
+              </div>
+            </div>
+
+            <div class="cart-item-actions">
+              <div class="cart-item-price">
+                {% if item.product.is_free %}
+                  <span style="color: var(--success);">Tekin</span>
+                {% else %}
+                  {{ item.product.effective_price|floatformat:0 }} so‘m
+                {% endif %}
+              </div>
+              <form method="POST" action="{% url 'cart_remove' item.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);" title="O‘chirish">
+                  🗑️
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="card" style="padding: 24px; position: sticky; top: calc(var(--header-height) + 24px);">
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+          Buyurtma hisobi
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.95rem;">
+            <span>Mahsulotlar ({{ cart_items|length }} ta)</span>
+            <span>{{ subtotal|floatformat:0 }} so‘m</span>
+          </div>
+          {% if total_discount > 0 %}
+            <div style="display: flex; justify-content: space-between; color: var(--success); font-size: 0.95rem;">
+              <span>Chegirma</span>
+              <span>-{{ total_discount|floatformat:0 }} so‘m</span>
+            </div>
+          {% endif %}
+          <div style="display: flex; justify-content: space-between; color: var(--text-primary); font-weight: 800; font-size: 1.3rem; border-top: 1px solid var(--border-light); padding-top: 14px;">
+            <span>Jami:</span>
+            <span>{{ total|floatformat:0 }} so‘m</span>
+          </div>
+        </div>
+
+        <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg btn-block">
+          To‘lovga o‘tish
+        </a>
+
+        <div style="margin-top: 16px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+          🔒 Barcha xaridlar xavfsiz va kafolatlangan
+        </div>
+      </div>
+    </div>
+  {% else %}
+    {% include 'components/empty_state.html' with empty_icon="🛒" empty_title="Savatingiz hozircha bo‘sh" empty_desc="Xarid qilish uchun mahsulotlar katalogidan o‘zingizga yoqqanlarini tanlang." empty_action_url="/marketplace/" empty_action_text="Mahsulotlarni ko‘rish" %}
+  {% endif %}
+</div>
+{% endblock %}

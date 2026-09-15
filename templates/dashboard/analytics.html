@@ -1,0 +1,104 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block dashboard_title %}Statistika va Analitika{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+  <div style="display: flex; gap: 8px; background: var(--surface); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+    <a href="?period=7" class="btn btn-sm {% if period == '7' %}btn-primary{% else %}btn-ghost{% endif %}">7 kun</a>
+    <a href="?period=30" class="btn btn-sm {% if period == '30' %}btn-primary{% else %}btn-ghost{% endif %}">30 kun</a>
+    <a href="?period=90" class="btn btn-sm {% if period == '90' %}btn-primary{% else %}btn-ghost{% endif %}">90 kun</a>
+    <a href="?period=365" class="btn btn-sm {% if period == '365' %}btn-primary{% else %}btn-ghost{% endif %}">1 yil</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Davr bo‘yicha ko‘rishlar</span>
+      <span class="stat-icon">👁️</span>
+    </div>
+    <div class="stat-value">{{ period_views|default:0 }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Davr bo‘yicha sotuvlar</span>
+      <span class="stat-icon">🛒</span>
+    </div>
+    <div class="stat-value">{{ period_sales|default:0 }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Davr daromadi</span>
+      <span class="stat-icon">💰</span>
+    </div>
+    <div class="stat-value" style="color: var(--success);">{{ period_revenue|floatformat:0 }} so‘m</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-header">
+      <span class="stat-title">Konversiya darajasi</span>
+      <span class="stat-icon">🎯</span>
+    </div>
+    <div class="stat-value">{{ conversion_rate|default:"0.0" }}%</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 32px; padding: 24px;">
+  <div class="card-header" style="padding: 0 0 16px 0; margin-bottom: 20px;">
+    <h3 style="font-size: 1.15rem;">Ko‘rishlar dinamikasi (Kunlik ko‘rsatkich)</h3>
+  </div>
+  <div id="analytics-chart" style="width: 100%; min-height: 220px;"></div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 style="font-size: 1.15rem;">Mahsulotlar samaradorligi</h3>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Mahsulot</th>
+          <th>Ko‘rishlar</th>
+          <th>Sotuvlar</th>
+          <th>Daromad</th>
+          <th>Reyting</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in product_stats %}
+          <tr>
+            <td style="font-weight: 700; color: var(--text-primary);">{{ prod.title }}</td>
+            <td>{{ prod.views_count }} ta</td>
+            <td>{{ prod.sales_count }} ta</td>
+            <td style="font-weight: 700; color: var(--success);">{{ prod.total_product_revenue|floatformat:0 }} so‘m</td>
+            <td>⭐ {{ prod.rating|floatformat:1 }} ({{ prod.reviews_count }})</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 36px;">
+              Ma’lumotlar mavjud emas.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const labels = {{ chart_labels|safe }};
+    const data = {{ chart_data|safe }};
+    renderAnalyticsChart('analytics-chart', labels, data, 'Ko‘rishlar');
+  });
+</script>
+{% endblock %}

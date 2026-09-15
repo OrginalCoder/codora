@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}To‘lovni rasmiylashtirish — Codora{% endblock %}
+
+{% block content %}
+<div class="container section-spacer" style="padding-top: 32px; max-width: 960px;">
+  <div class="section-header">
+    <div>
+      <h1 class="section-title">Buyurtmani rasmiylashtirish</h1>
+      <p class="section-subtitle">To‘lov tafsilotlarini tekshiring va chekni yuklang</p>
+    </div>
+  </div>
+
+  <div class="checkout-steps">
+    <div class="checkout-step completed">
+      <span class="checkout-step-num">✓</span>
+      <span>Savat</span>
+    </div>
+    <div class="checkout-step-line active"></div>
+    <div class="checkout-step active">
+      <span class="checkout-step-num">2</span>
+      <span>To‘lov & Chek</span>
+    </div>
+    <div class="checkout-step-line"></div>
+    <div class="checkout-step">
+      <span class="checkout-step-num">3</span>
+      <span>Tasdiqlash</span>
+    </div>
+  </div>
+
+  <div class="checkout-layout">
+    <div>
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h3 style="font-size: 1.15rem;">Mahsulotlar</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+          {% for item in items %}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                {% if item.product.thumbnail %}
+                  <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.title }}" style="width: 50px; height: 36px; border-radius: var(--radius-sm); object-fit: cover;">
+                {% else %}
+                  <div style="width: 50px; height: 36px; border-radius: var(--radius-sm); background: var(--surface-elevated); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">📦</div>
+                {% endif %}
+                <div>
+                  <div style="font-weight: 600; font-size: 0.95rem;">{{ item.product.title }}</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted);">Sotuvchi: {{ item.product.seller.store_name }}</div>
+                </div>
+              </div>
+              <div style="font-weight: 700; font-size: 1.05rem;">
+                {{ item.product.effective_price|floatformat:0 }} so‘m
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 style="font-size: 1.15rem;">To‘lov ma’lumotlari</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{% url 'process_checkout' %}" id="checkout-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if coupon_code %}
+              <input type="hidden" name="coupon_code" value="{{ coupon_code }}">
+            {% endif %}
+            {% if single_product_id %}
+              <input type="hidden" name="single_product_id" value="{{ single_product_id }}">
+            {% endif %}
+
+            {% if final_amount > 0 %}
+              {% if seller and seller.card_number %}
+                <div class="luxury-bank-card">
+                  <div class="luxury-card-top">
+                    <div class="luxury-card-chip"></div>
+                    <span class="luxury-card-badge">{{ seller.bank_name|default:"Uzcard / Humo" }}</span>
+                  </div>
+
+                  <div class="luxury-card-number-box">
+                    <div id="seller-card-number" class="luxury-card-number">
+                      {{ seller.card_number }}
+                    </div>
+                    <button type="button" class="luxury-card-copy-btn" onclick="copyCardNumber()" id="copy-btn">
+                      📋 Nusxalash
+                    </button>
+                  </div>
+
+                  <div class="luxury-card-bottom">
+                    <div>
+                      <div class="luxury-card-meta-label">Karta egasi</div>
+                      <div class="luxury-card-meta-val">{{ seller.card_holder|default:seller.store_name }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                      <div class="luxury-card-meta-label">Sotuvchi do‘koni</div>
+                      <div class="luxury-card-meta-val">{{ seller.store_name }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; font-size: 0.88rem; line-height: 1.6; color: var(--text-secondary); border: 1px solid var(--border-light);">
+                  <strong style="color: var(--text-primary);">To‘lov qilish tartibi:</strong>
+                  <ol style="margin: 8px 0 0 18px; padding: 0;">
+                    <li>Istalgan to‘lov ilovasi (Click, Payme, Uzum Bank va h.k.) orqali yuqoridagi kartaga aynan <strong style="color: var(--accent);">{{ final_amount|floatformat:0 }} so‘m</strong> o‘tkazing.</li>
+                    <li>To‘lov amalga oshirilgan chekni saqlab oling va quyidagi maydonga yuklang.</li>
+                    <li>«To‘lov chekini yuborish» tugmasini bosing. Sotuvchi chekni tekshirib tasdiqlashi bilan mahsulot manba kodi kutubxonangizda ochiladi.</li>
+                  </ol>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                  <label for="receipt" class="form-label" style="font-weight: 700;">
+                    To‘lov chekini yuklang <span style="color: var(--danger);">*</span>
+                  </label>
+                  <input type="file" name="receipt" id="receipt" class="form-input" accept=".jpg,.jpeg,.png,.webp,.pdf,.heic" required onchange="handleReceiptPreview(event)">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                    Ruxsat etilgan formatlar: <strong>JPG, PNG, WEBP, PDF, HEIC</strong> (Maksimal hajm: <strong>5 MB</strong>)
+                  </div>
+                  <div id="receipt-preview-container" style="display: none; margin-top: 12px; padding: 14px; background: var(--surface-hover); border: 1px dashed var(--accent); border-radius: var(--radius-md); text-align: center;">
+                    <img id="receipt-preview-img" src="" alt="Chek rasmi" style="max-height: 200px; border-radius: var(--radius-sm); margin: 0 auto; display: none; box-shadow: var(--shadow-sm);">
+                    <div id="receipt-preview-name" style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); margin-top: 8px;"></div>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                  <label for="buyer_note" class="form-label">Izoh yoki to‘lovchi ismi (ixtiyoriy)</label>
+                  <input type="text" name="buyer_note" id="buyer_note" class="form-input" placeholder="Masalan: To‘lovchi Rustam A.">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="submit-order-btn">
+                  📤 To‘lov chekini yuborish ({{ final_amount|floatformat:0 }} so‘m)
+                </button>
+              {% else %}
+                <div class="alert alert-warning" style="margin-bottom: 20px;">
+                  ⚠️ Sotuvchi o‘z to‘lov rekvizitlarini hali kiritmagan. Iltimos, sotuvchi bilan bog‘laning yoki birozdan so‘ng qayta urinib ko‘ring.
+                </div>
+                <button type="button" class="btn btn-secondary btn-lg btn-block" disabled>
+                  To‘lov qabul qilish vaqtincha to‘xtatilgan
+                </button>
+              {% endif %}
+            {% else %}
+              <div class="alert alert-success" style="margin-bottom: 24px;">
+                🎉 Ushbu buyurtma to‘liq bepul. Hech qanday to‘lov talab etilmaydi!
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block">
+                ✅ Bepul qabul qilish va kutubxonaga qo‘shish
+              </button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="padding: 24px; position: sticky; top: calc(var(--header-height) + 24px);">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          Buyurtma xulosasi
+        </h3>
+
+        <form method="POST" action="{% url 'apply_coupon' %}" style="display: flex; gap: 8px; margin-bottom: 20px;">
+          {% csrf_token %}
+          {% if single_product_id %}
+            <input type="hidden" name="single_product_id" value="{{ single_product_id }}">
+          {% endif %}
+          <input type="text" name="coupon_code" class="form-input" placeholder="Promo-kod" value="{{ coupon_code|default:'' }}" style="text-transform: uppercase;">
+          <button type="submit" class="btn btn-secondary btn-sm" style="white-space: nowrap;">Qo‘llash</button>
+        </form>
+
+        {% if coupon_message %}
+          <div style="font-size: 0.82rem; margin-bottom: 16px; color: {% if coupon_valid %}var(--success){% else %}var(--danger){% endif %};">
+            {{ coupon_message }}
+          </div>
+        {% endif %}
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+            <span>Narxi:</span>
+            <span>{{ subtotal|floatformat:0 }} so‘m</span>
+          </div>
+          {% if discount_amount > 0 %}
+            <div style="display: flex; justify-content: space-between; color: var(--success);">
+              <span>Chegirma:</span>
+              <span>-{{ discount_amount|floatformat:0 }} so‘m</span>
+            </div>
+          {% endif %}
+          <div style="display: flex; justify-content: space-between; color: var(--text-primary); font-weight: 800; font-size: 1.3rem; border-top: 1px solid var(--border-light); padding-top: 14px;">
+            <span>Jami to‘lov:</span>
+            <span>{{ final_amount|floatformat:0 }} so‘m</span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; border-top: 1px solid var(--border-light); padding-top: 14px;">
+          To‘lov cheki yuborilgach, sotuvchi uni tekshirib tasdiqlashi bilan mahsulot shaxsiy kabinetingizda yuklab olishga tayyor bo‘ladi.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyCardNumber() {
+  const cardElem = document.getElementById('seller-card-number');
+  if (!cardElem) return;
+  const rawNum = cardElem.textContent.replace(/\s+/g, '').trim();
+  navigator.clipboard.writeText(rawNum).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '✅ Nusxalandi!';
+    btn.classList.remove('btn-secondary');
+    btn.classList.add('btn-success');
+    setTimeout(() => {
+      btn.innerHTML = origText;
+      btn.classList.remove('btn-success');
+      btn.classList.add('btn-secondary');
+    }, 2000);
+  }).catch(() => {
+    alert('Karta raqami: ' + rawNum);
+  });
+}
+
+function handleReceiptPreview(event) {
+  const file = event.target.files[0];
+  const container = document.getElementById('receipt-preview-container');
+  const img = document.getElementById('receipt-preview-img');
+  const nameLabel = document.getElementById('receipt-preview-name');
+  if (!file) {
+    if (container) container.style.display = 'none';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Chek fayli hajmi 5 MB dan oshmasligi kerak!");
+    event.target.value = '';
+    if (container) container.style.display = 'none';
+    return;
+  }
+  if (container && nameLabel) {
+    container.style.display = 'block';
+    nameLabel.textContent = '📄 ' + file.name + ' (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB)';
+  }
+  if (file.type.startsWith('image/') && img) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else if (img) {
+    img.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}
