@@ -3,18 +3,23 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q, F
+from django.db.models import Q, F, Count, Sum
+from django.utils import timezone
 from django.contrib import messages
 from .models import Category, Product, Review, Wishlist, Cart, CartItem, ProductView
 from apps.accounts.models import SellerProfile
-from apps.orders.models import OrderItem
+from apps.orders.models import Order, OrderItem
 from apps.notifications.models import Notification
 
 
 def home_view(request):
-    featured_categories = Category.objects.filter(is_featured=True)[:8]
+    featured_categories = Category.objects.filter(is_featured=True).annotate(
+        approved_count=Count('products', filter=Q(products__status='approved'))
+    )[:8]
     if not featured_categories.exists():
-        featured_categories = Category.objects.all()[:8]
+        featured_categories = Category.objects.all().annotate(
+            approved_count=Count('products', filter=Q(products__status='approved'))
+        )[:8]
 
     approved_products = Product.objects.filter(status='approved').select_related('seller', 'category')
 
@@ -23,16 +28,93 @@ def home_view(request):
     if not best_sellers.exists():
         best_sellers = approved_products.order_by('-rating')[:4]
     new_products = approved_products.order_by('-created_at')[:4]
-    top_creators = SellerProfile.objects.all().order_by('-total_sales', '-rating')[:4]
+    top_creators = SellerProfile.objects.select_related('user').annotate(
+        approved_products_count=Count('products', filter=Q(products__status='approved'))
+    ).order_by('-total_sales', '-rating')[:4]
 
     user_wishlist_ids = set()
     if request.user.is_authenticated:
         user_wishlist_ids = set(Wishlist.objects.filter(user=request.user).values_list('product_id', flat=True))
 
+    total_products_count = approved_products.count()
+    total_sellers_count = SellerProfile.objects.count()
+    total_paid_orders = Order.objects.filter(status='paid')
+    total_sales_count = total_paid_orders.count()
+
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_orders = total_paid_orders.filter(created_at__gte=today_start)
+    today_count = today_orders.count()
+    today_volume = today_orders.aggregate(total=Sum('final_amount'))['total'] or Decimal('0.00')
+
+    all_time_volume = total_paid_orders.aggregate(total=Sum('final_amount'))['total'] or Decimal('0.00')
+
+    if today_count > 0:
+        hero_summary = {
+            'label': 'Bugungi jami savdolar',
+            'value': f"{today_volume:,.0f} UZS",
+            'badge': f"{today_count} ta muvaffaqiyatli bitim",
+            'sub_badge': '+Bugun faol',
+        }
+    elif all_time_volume > 0:
+        hero_summary = {
+            'label': 'Jami muvaffaqiyatli savdolar',
+            'value': f"{all_time_volume:,.0f} UZS",
+            'badge': f"{total_sales_count} ta muvaffaqiyatli bitim",
+            'sub_badge': 'Platforma faol',
+        }
+    else:
+        hero_summary = {
+            'label': 'Mavjud raqamli mahsulotlar',
+            'value': f"{total_products_count} ta tayyor loyiha",
+            'badge': f"{total_sellers_count} ta faol muallif",
+            'sub_badge': 'Yangi katalog',
+        }
+
+    recent_order_items = OrderItem.objects.filter(order__status='paid').select_related(
+        'order__user', 'product__category', 'seller'
+    ).order_by('-order__created_at')[:3]
+
+    hero_activity = []
+    icon_colors = ['hero-icon-blue', 'hero-icon-purple', 'hero-icon-amber']
+
+    if recent_order_items.exists():
+        for idx, item in enumerate(recent_order_items):
+            buyer_user = item.order.user
+            first_n = buyer_user.first_name or buyer_user.username
+            buyer_display = f"{first_n[:7]}..." if len(first_n) > 8 else first_n
+            cat_icon = item.product.category.icon if item.product and item.product.category else '🚀'
+            color_cls = icon_colors[idx % len(icon_colors)]
+
+            hero_activity.append({
+                'icon': cat_icon,
+                'color_class': color_cls,
+                'title': item.product_title,
+                'price': f"+{item.price:,.0f} UZS",
+                'meta': f"{buyer_display} • xarid qilindi",
+                'created_at': item.order.created_at,
+                'status': 'To‘landi ✅',
+                'url': f"/product/{item.product.slug}/" if item.product else '#',
+            })
+    else:
+        top_samples = approved_products.order_by('-rating', '-created_at')[:3]
+        for idx, prod in enumerate(top_samples):
+            color_cls = icon_colors[idx % len(icon_colors)]
+            price_str = "Tekin" if prod.is_free else f"{prod.effective_price:,.0f} UZS"
+            hero_activity.append({
+                'icon': prod.category.icon if prod.category else '💻',
+                'color_class': color_cls,
+                'title': prod.title,
+                'price': price_str,
+                'meta': f"{prod.seller.store_name} • yangi mahsulot",
+                'created_at': prod.created_at,
+                'status': 'Katalogda ✅',
+                'url': f"/product/{prod.slug}/",
+            })
+
     stats = {
-        'products_count': approved_products.count(),
-        'sellers_count': SellerProfile.objects.count(),
-        'sales_count': OrderItem.objects.count(),
+        'products_count': total_products_count,
+        'sellers_count': total_sellers_count,
+        'sales_count': total_sales_count,
     }
 
     return render(request, 'home.html', {
@@ -42,6 +124,8 @@ def home_view(request):
         'new_products': new_products,
         'top_creators': top_creators,
         'stats': stats,
+        'hero_summary': hero_summary,
+        'hero_activity': hero_activity,
         'user_wishlist_ids': user_wishlist_ids,
     })
 
@@ -177,7 +261,9 @@ def product_detail_view(request, slug):
 
 
 def categories_list_view(request):
-    categories = Category.objects.all()
+    categories = Category.objects.annotate(
+        approved_count=Count('products', filter=Q(products__status='approved'))
+    )
     return render(request, 'marketplace/categories_list.html', {'categories': categories})
 
 
@@ -205,7 +291,9 @@ def category_detail_view(request, slug):
 
 
 def sellers_list_view(request):
-    sellers = SellerProfile.objects.all().order_by('-total_sales', '-rating')
+    sellers = SellerProfile.objects.select_related('user').annotate(
+        approved_products_count=Count('products', filter=Q(products__status='approved'))
+    ).order_by('-total_sales', '-rating')
     return render(request, 'marketplace/sellers_list.html', {'sellers': sellers})
 
 

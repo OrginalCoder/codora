@@ -45,6 +45,8 @@ class Category(models.Model):
 
     @property
     def approved_products_count(self):
+        if hasattr(self, 'approved_count'):
+            return self.approved_count
         return self.products.filter(status='approved').count()
 
 
