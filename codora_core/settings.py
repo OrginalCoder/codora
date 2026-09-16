@@ -118,6 +118,18 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
+csrf_trusted_env = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+if csrf_trusted_env:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_trusted_env.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.pythonanywhere.com',
+        'http://*.pythonanywhere.com',
+        'https://*.codora.uz',
+        'http://127.0.0.1',
+        'http://localhost',
+    ]
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600
 FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600
 SESSION_COOKIE_AGE = 1209600
